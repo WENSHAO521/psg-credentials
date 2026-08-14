@@ -4,8 +4,6 @@ Static credential lookup / QR verification / certificate download for
 Panorama Scholarly Group. No database, no backend — GitHub holds the data,
 Cloudflare Pages serves the static site.
 
-Full spec: [SPEC-v1.md](./SPEC-v1.md)
-
 ## Adding a new certificate
 
 1. Add a row to `source/certificates.csv` (leave `certificate_id` and `token` blank)
