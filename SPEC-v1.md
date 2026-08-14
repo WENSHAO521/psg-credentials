@@ -164,7 +164,11 @@ https://credentials.panorama-sg.com/verify/?id={certificate_id}&token={token}
 | `signatory_title` | 签名下方印刷体职衔，默认 `Editor-in-Chief` |
 | `issn` | 期刊 ISSN，留空则证书上不显示 ISSN 行 |
 
-当前 21 本期刊的真实列表已从 journals.panorama-sg.com 核实（每本期刊编委页地址并不统一，是按各期刊自己配置的 slug 分别核对的）。截至核实时，**全部 21 本期刊的编委会页面都还是"Information will be updated by the editorial office"占位文字，没有一本公开了真实主编姓名**——`editor_in_chief` 列因此全部留空，等待人工补充。ISSN 有 11 本已经拿到正式号（如 AI & Future Society `3053-4011`），其余显示 "Pending"，同样留空处理。
+当前 21 本期刊的真实列表与主编姓名已从 journals.panorama-sg.com 核实（每本期刊编委页地址并不统一，按各期刊自己配置的 slug 分别核对；ISSN 以 panorama-sg.com/journals 的权威数据 `data/journals.json` 为准，比单本期刊页面更新更及时，例如 Contemporary Review of Political Thought 的 ISSN 就是先在这里发现已经从 Pending 变成 `3056-0977`）。目前 14 本期刊已核实到真实主编姓名并填入 `editor_in_chief`；剩余几本官网编委页确实还没有公开人选，留空处理，不编造。
+
+### 编委会成员名单（`source/editorial-boards.csv`，仅供参考）
+
+`journal,role,name,affiliation` 四列，记录目前所有 ISSN 已注册期刊（含 Contemporary Review of Political Thought 和短标题的 "Health Nexus"）编委会的完整名单，不止主编一人。**这是纯参考数据，不参与构建、不会自动变成证书**——生成正式证书需要真实的任期起止日期和 PSG 内部对"确实要发证书给这个人"的确认，这两点都没法从官网名单里推断出来，所以这张表和 `certificates.csv` / `journals.csv` 都没有 join 关系，纯粹是抓取归档。
 
 ---
 
