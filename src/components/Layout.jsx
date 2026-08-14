@@ -28,7 +28,20 @@ export default function Layout({ children }) {
             PSG Credentials
           </span>
         </Link>
-        <nav className="font-mono text-xs tracking-[0.15em] uppercase">
+        <nav className="font-mono text-xs tracking-[0.15em] uppercase flex items-center gap-6">
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) =>
+              `pb-1 border-b-2 transition-colors focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-4 ${
+                isActive
+                  ? "border-red text-ink"
+                  : "border-transparent text-steel hover:text-ink"
+              }`
+            }
+          >
+            Search
+          </NavLink>
           <NavLink
             to="/verify"
             className={({ isActive }) =>
@@ -48,10 +61,10 @@ export default function Layout({ children }) {
 
       <footer className="w-full border-t-2 border-ink bg-ink text-paper px-4 md:px-16 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-paper/80">
-          &copy; {new Date().getFullYear()} Panorama Scholarly Group
+          &copy; {new Date().getFullYear()} Panorama Scholarly Group. All rights reserved.
         </div>
         <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-paper/50">
-          Static credential registry. No data beyond what is shown here is stored.
+          Official credential verification registry
         </div>
       </footer>
     </div>
