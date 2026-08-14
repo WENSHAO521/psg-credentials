@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Alex Brush";
+  src: url("/fonts/AlexBrush-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-ink: #101112;
+  --color-paper: #f9f9f9;
+  --color-paper-pure: #ffffff;
+  --color-surface: #f0f0f1;
+  --color-surface-line: #d7d8da;
+  --color-steel: #6b6d72;
+  --color-steel-dim: #9a9ca0;
+  --color-red: #e30613;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+/* Dark mode: redefine the same custom properties Tailwind's utilities already
+   reference (bg-ink, text-steel, etc.), so no component needs a dark: variant.
+   The certificate SVG itself is exempt on purpose — it's a printed/exported
+   document and stays white paper regardless of site theme. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-ink: #f2f1ef;
+    --color-paper: #141416;
+    --color-paper-pure: #1c1d1f;
+    --color-surface: #202124;
+    --color-surface-line: #313335;
+    --color-steel: #9a9ca0;
+    --color-steel-dim: #6b6d72;
+  }
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-surface) 40%,
+    var(--color-surface-line) 50%,
+    var(--color-surface) 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+  .animate-pop-in {
+    animation: none;
+  }
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+  font-size: 24px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.cert-shell svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(to right, var(--color-surface-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-surface-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}

@@ -1,0 +1,28 @@
+{
+  "name": "psg-credentials",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Static credential lookup / verification / certificate generation for Panorama Scholarly Group",
+  "scripts": {
+    "assign-ids": "node scripts/assign-ids.js",
+    "validate": "node scripts/validate-data.js",
+    "prune-expired": "node scripts/prune-expired.js",
+    "build:data": "node scripts/build-registry.js",
+    "build": "npm run validate && npm run build:data && vite build",
+    "dev": "npm run build:data && vite"
+  },
+  "dependencies": {
+    "papaparse": "^5.4.1",
+    "qrcode": "^1.5.3",
+    "pdf-lib": "^1.17.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0"
+  }
+}
