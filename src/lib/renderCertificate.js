@@ -103,6 +103,13 @@ function removeIfEmpty(svgEl, id, value) {
   if (el) el.remove();
 }
 
+function selectSeal(svgEl, secretariatSigned) {
+  const standard = svgEl.querySelector("#seal-standard");
+  const secretariat = svgEl.querySelector("#seal-secretariat");
+  if (standard) standard.setAttribute("display", secretariatSigned ? "none" : "inline");
+  if (secretariat) secretariat.setAttribute("display", secretariatSigned ? "inline" : "none");
+}
+
 function injectQrCode(svgEl, qrDataUrl) {
   const slot = svgEl.querySelector("#qr-slot");
   if (!slot) return;
@@ -138,6 +145,7 @@ export function buildCertificateSvg(templateText, record, qrDataUrl) {
 
   try {
     removeIfEmpty(svgEl, "field-issn", record.issn);
+    selectSeal(svgEl, record.secretariat_signed);
     fitAllText(svgEl);
     injectQrCode(svgEl, qrDataUrl);
     // Strip the off-screen positioning before serializing — it was only ever

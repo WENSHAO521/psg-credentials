@@ -9,6 +9,14 @@ const CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
 const JOURNALS_CSV_PATH = path.join(__dirname, '..', 'source', 'journals.csv');
 const OUT_PATH = path.join(__dirname, '..', 'public', 'data', 'certificates.json');
 
+// An Editor-in-Chief's own certificate can't be signed by "the journal's
+// editor-in-chief" (from journals.csv) -- that would be them signing their
+// own appointment. Those certificates are issued by the Secretariat instead.
+// No personal name is invented for it; the signature line stays blank and
+// only the printed title shows.
+const SECRETARIAT_ROLES = new Set(['Editor-in-Chief']);
+const SECRETARIAT_TITLE = 'Secretariat, Panorama Scholarly Group';
+
 // Only these fields are ever written to the public JSON. Anything else in the
 // CSV (internal notes, contact info, etc.) is intentionally dropped here,
 // because certificates.json is a publicly fetchable file once deployed.
@@ -61,10 +69,16 @@ function main() {
       );
       process.exit(1);
     }
-    out.signatory_name = (journalRow.editor_in_chief || '').trim();
-    out.signatory_title = (journalRow.signatory_title || 'Editor-in-Chief').trim();
+    out.secretariat_signed = SECRETARIAT_ROLES.has(out.role);
+    if (out.secretariat_signed) {
+      out.signatory_name = '';
+      out.signatory_title = SECRETARIAT_TITLE;
+    } else {
+      out.signatory_name = (journalRow.editor_in_chief || '').trim();
+      out.signatory_title = (journalRow.signatory_title || 'Editor-in-Chief').trim();
+      if (!out.signatory_name) missingSignatories += 1;
+    }
     out.issn = (journalRow.issn || '').trim();
-    if (!out.signatory_name) missingSignatories += 1;
 
     return out;
   });

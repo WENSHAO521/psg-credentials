@@ -1,22 +1,23 @@
-journal,editor_in_chief,signatory_title,issn
-AI & Future Society,Zekai Yu,Editor-in-Chief,3053-4011
-Comparative Philosophy and Religious Traditions,,Editor-in-Chief,
-Contemporary Review of Political Thought,Mengzhou Wu,Editor-in-Chief,3056-0977
-Climate Sustainability & Global Systems,Yaolin Zhang,Editor-in-Chief,3054-9663
-Computational Social Sciences Review,,Editor-in-Chief,
-"Food Systems, Safety & Sustainability",,Editor-in-Chief,
-Global Public Policy & Governance Review,,Editor-in-Chief,
-"Global Review of Humanities, Arts, and Society",Sebastian Lenz,Editor-in-Chief,3052-539X
-Health Nexus: Digital Health and Medical AI,Qilong Wang,Editor-in-Chief,
-Journal of Dance and Embodied Structure,,Editor-in-Chief,
-Journal of Engineering Systems and Applications,Zeyu Wang,Editor-in-Chief,3053-478X
-Journal of Sport and Exercise Studies,Dr. Xingyi Xu,Editor-in-Chief,
-"Journal of Law, Psychology, and Communication Studies",Qilun Hu,Editor-in-Chief,3052-9654
-Journal of Social Cognition and Communication,Yangyi Ren,Editor-in-Chief,3054-6958
-International Review of Education and Learning Sciences,Mengzhou Wu,Editor-in-Chief,
-PoliEcoM Administration Review,Yiming Yang,Editor-in-Chief,3053-3597
-Panorama Frontier Review,,Editor-in-Chief,
-Resonance: Journal of Global Music Studies,Dr. Jiale Li,Editor-in-Chief,3053-4410
-Rural Governance and Green Development,Bing Wang,Editor-in-Chief,3053-7282
-Silence,Jacques Diderot,Editor-in-Chief,3054-4386
-"Three Teachings Studies: Confucianism, Daoism, and Buddhism",Hengjie Wang,Editor-in-Chief,3053-6553
+journal,editor_in_chief,signatory_title,issn,code
+AI & Future Society,Zekai Yu,Editor-in-Chief,3053-4011,AFS
+Comparative Philosophy and Religious Traditions,,Editor-in-Chief,,CPRT
+Contemporary Review of Political Thought,Mengzhou Wu,Editor-in-Chief,3056-0977,CROPT
+Climate Sustainability & Global Systems,Yaolin Zhang,Editor-in-Chief,3054-9663,CSGS
+Computational Social Sciences Review,,Editor-in-Chief,,CSSR
+"Food Systems, Safety & Sustainability",,Editor-in-Chief,,FSSS
+Global Public Policy & Governance Review,,Editor-in-Chief,,GPPGR
+"Global Review of Humanities, Arts, and Society",Sebastian Lenz,Editor-in-Chief,3052-539X,GRHAS
+Health Nexus,Feifei Chen,Editor-in-Chief,3053-7037,HN
+Health Nexus: Digital Health and Medical AI,,Editor-in-Chief,,HNDH
+Journal of Dance and Embodied Structure,,Editor-in-Chief,,JDES
+Journal of Engineering Systems and Applications,Zeyu Wang,Editor-in-Chief,3053-478X,JESA
+Journal of Sport and Exercise Studies,Dr. Xingyi Xu,Editor-in-Chief,,SES
+"Journal of Law, Psychology, and Communication Studies",Qilun Hu,Editor-in-Chief,3052-9654,JLPCS
+Journal of Social Cognition and Communication,Yangyi Ren,Editor-in-Chief,3054-6958,JSCC
+International Review of Education and Learning Sciences,Mengzhou Wu,Editor-in-Chief,,IRELS
+PoliEcoM Administration Review,Yiming Yang,Editor-in-Chief,3053-3597,PEMR
+Panorama Frontier Review,,Editor-in-Chief,,PFR
+Resonance: Journal of Global Music Studies,Dr. Jiale Li,Editor-in-Chief,3053-4410,RES
+Rural Governance and Green Development,Bing Wang,Editor-in-Chief,3053-7282,RGGD
+Silence,Jacques Diderot,Editor-in-Chief,3054-4386,SILENCE
+"Three Teachings Studies: Confucianism, Daoism, and Buddhism",Hengjie Wang,Editor-in-Chief,3053-6553,TTS
