@@ -8,11 +8,15 @@ export async function loadCertificates() {
   return cache;
 }
 
+// Exact match only (case-insensitive) on the title-free `name` field -- not a
+// substring search. A partial name like "Wang" would otherwise surface every
+// certificate holder who happens to share that fragment, which leaks other
+// people's records to anyone fishing with a common name piece.
 export async function searchByName(query) {
   const records = await loadCertificates();
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  return records.filter((r) => r.name.toLowerCase().includes(q));
+  return records.filter((r) => r.name.trim().toLowerCase() === q);
 }
 
 export async function findById(certificateId) {

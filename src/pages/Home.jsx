@@ -42,8 +42,9 @@ export default function Home() {
             Find Your Certificate
           </h1>
           <p className="font-sans text-base text-steel max-w-lg mx-auto">
-            Search by the name on your appointment record to find your
-            certificate, its number, and the QR code that verifies it.
+            Enter your full name exactly as it appears on your appointment
+            record to find your certificate, its number, and the QR code
+            that verifies it.
           </p>
         </div>
 
@@ -85,9 +86,9 @@ export default function Home() {
           <div className="mt-10 border-t border-surface-line pt-8 relative z-10">
             {results.length === 0 ? (
               <p className="text-center text-sm text-steel">
-                No certificate found for &ldquo;{q}&rdquo;. Check the spelling,
-                or contact the editorial office if you believe this is an
-                error.
+                No certificate found for &ldquo;{q}&rdquo;. Make sure it matches
+                your full name exactly (no titles, no partial names), or
+                contact the editorial office if you believe this is an error.
               </p>
             ) : (
               <ul className="flex flex-col gap-3">
