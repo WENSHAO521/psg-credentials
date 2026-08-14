@@ -106,8 +106,10 @@ function removeIfEmpty(svgEl, id, value) {
 function selectSeal(svgEl, secretariatSigned) {
   const standard = svgEl.querySelector("#seal-standard");
   const secretariat = svgEl.querySelector("#seal-secretariat");
+  const stamp = svgEl.querySelector("#seal-signature-stamp");
   if (standard) standard.setAttribute("display", secretariatSigned ? "none" : "inline");
   if (secretariat) secretariat.setAttribute("display", secretariatSigned ? "inline" : "none");
+  if (stamp) stamp.setAttribute("display", secretariatSigned ? "inline" : "none");
 }
 
 function injectQrCode(svgEl, qrDataUrl) {

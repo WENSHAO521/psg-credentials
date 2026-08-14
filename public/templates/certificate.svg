@@ -101,6 +101,30 @@
   <text x="150" y="519" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="9" letter-spacing="2" fill="#6B6D72">AUTHORIZED SIGNATORY</text>
   <text id="field-signatory-title" x="150" y="532" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="400" font-size="9" fill="#6B6D72">{{SIGNATORY_TITLE}}</text>
 
+  <!-- Secretariat certificates have no personal signature, so the seal is
+       stamped directly over the signature line instead (a slightly rotated,
+       semi-transparent impression, like a real chop pressed onto the page)
+       rather than leaving the line looking merely blank/unsigned. -->
+  <g id="seal-signature-stamp" transform="translate(148,484) rotate(-9) scale(0.14) translate(-200,-200)" opacity="0.82" display="none">
+    <circle cx="200" cy="200" r="196" fill="none" stroke="#6B7078" stroke-width="1.5"/>
+    <circle cx="200" cy="200" r="172" fill="none" stroke="#AEB3BA" stroke-width="2"/>
+    <circle cx="200" cy="200" r="164" fill="none" stroke="url(#silverRim)" stroke-width="6"/>
+    <text font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="15" letter-spacing="4" fill="#3A3D42">
+      <textPath href="#secRingTop" startOffset="50%" text-anchor="middle">PANORAMA SCHOLARLY GROUP</textPath>
+    </text>
+    <text font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="13" letter-spacing="3" fill="#3A3D42">
+      <textPath href="#secRingBottom" startOffset="50%" text-anchor="middle">SECRETARIAT &#183; OFFICIAL SEAL</textPath>
+    </text>
+    <circle cx="200" cy="200" r="132" fill="none" stroke="#AEB3BA" stroke-width="1.5"/>
+    <g transform="translate(200,200) scale(0.85) translate(-95,-100)" fill="#3A3D42">
+      <rect x="0" y="0" width="30" height="200"/>
+      <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z"/>
+      <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z"/>
+      <path d="M150 200 H50 V170 H150 V50 H180 V200 Z"/>
+      <rect x="160" y="10" width="30" height="30"/>
+    </g>
+  </g>
+
   <!-- footer: QR slot (66x66 box at 596,447), corner brackets are placement guides -->
   <g id="qr-slot" stroke="#6B6D72" stroke-width="1" fill="none">
     <path d="M596,459 V447 H608"/>
