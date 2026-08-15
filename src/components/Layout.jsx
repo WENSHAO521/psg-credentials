@@ -15,6 +15,12 @@ function Monogram({ className }) {
   );
 }
 
+function navLinkClass({ isActive }) {
+  return `pb-1 border-b-2 transition-colors focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-4 ${
+    isActive ? "border-red text-ink" : "border-transparent text-steel hover:text-ink"
+  }`;
+}
+
 export default function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-paper text-ink grid-bg font-sans">
@@ -29,29 +35,13 @@ export default function Layout({ children }) {
           </span>
         </Link>
         <nav className="font-mono text-xs tracking-[0.15em] uppercase flex items-center gap-6">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              `pb-1 border-b-2 transition-colors focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-4 ${
-                isActive
-                  ? "border-red text-ink"
-                  : "border-transparent text-steel hover:text-ink"
-              }`
-            }
-          >
+          <NavLink to="/" end className={navLinkClass}>
             Search
           </NavLink>
-          <NavLink
-            to="/verify"
-            className={({ isActive }) =>
-              `pb-1 border-b-2 transition-colors focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-4 ${
-                isActive
-                  ? "border-red text-ink"
-                  : "border-transparent text-steel hover:text-ink"
-              }`
-            }
-          >
+          <NavLink to="/institute" className={navLinkClass}>
+            Institute
+          </NavLink>
+          <NavLink to="/verify" className={navLinkClass}>
             Verify
           </NavLink>
         </nav>

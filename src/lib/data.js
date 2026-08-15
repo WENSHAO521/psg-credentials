@@ -12,11 +12,16 @@ export async function loadCertificates() {
 // substring search. A partial name like "Wang" would otherwise surface every
 // certificate holder who happens to share that fragment, which leaks other
 // people's records to anyone fishing with a common name piece.
-export async function searchByName(query) {
+//
+// `scope`, if given, further restricts which records are eligible (e.g. only
+// Panorama Research Institute credentials) -- applied after the exact-match
+// filter, so it narrows results rather than loosening the match itself.
+export async function searchByName(query, { scope } = {}) {
   const records = await loadCertificates();
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  return records.filter((r) => r.name.trim().toLowerCase() === q);
+  const matches = records.filter((r) => r.name.trim().toLowerCase() === q);
+  return scope ? matches.filter(scope) : matches;
 }
 
 export async function findById(certificateId) {

@@ -11,9 +11,11 @@ const OUT_PATH = path.join(__dirname, '..', 'public', 'data', 'certificates.json
 
 // An Editor-in-Chief's own certificate can't be signed by "the journal's
 // editor-in-chief" (from journals.csv) -- that would be them signing their
-// own appointment. Those certificates are issued by the Secretariat instead.
-// No personal name is invented for it; the signature line stays blank and
-// only the printed title shows.
+// own appointment. And some journals.csv rows simply have no confirmed
+// signatory yet. Both cases are Secretariat-signed: no personal name is
+// ever invented, the signature line stays blank, and the seal switches to
+// the silver Secretariat version instead of the gold one sitting next to
+// an empty line that looks unfinished.
 const SECRETARIAT_ROLES = new Set(['Editor-in-Chief']);
 const SECRETARIAT_TITLE = 'Secretariat, Panorama Scholarly Group';
 
@@ -69,16 +71,24 @@ function main() {
       );
       process.exit(1);
     }
-    out.secretariat_signed = SECRETARIAT_ROLES.has(out.role);
-    if (out.secretariat_signed) {
-      out.signatory_name = '';
-      out.signatory_title = SECRETARIAT_TITLE;
-    } else {
-      out.signatory_name = (journalRow.editor_in_chief || '').trim();
-      out.signatory_title = (journalRow.signatory_title || 'Editor-in-Chief').trim();
-      if (!out.signatory_name) missingSignatories += 1;
-    }
+    out.signatory_name = SECRETARIAT_ROLES.has(out.role)
+      ? ''
+      : (journalRow.editor_in_chief || '').trim();
+    out.secretariat_signed = !out.signatory_name;
+    out.signatory_title = out.signatory_name
+      ? (journalRow.signatory_title || 'Editor-in-Chief').trim()
+      : SECRETARIAT_TITLE;
+    if (out.secretariat_signed && !SECRETARIAT_ROLES.has(out.role)) missingSignatories += 1;
     out.issn = (journalRow.issn || '').trim();
+    // Seal colour: silver whenever nobody named is signing (regardless of
+    // journal vs institute -- that's the central Secretariat stepping in);
+    // otherwise gold for journals, bronze for the Research Institute, so the
+    // seal itself signals which of PSG's platforms issued the certificate.
+    out.seal = out.secretariat_signed
+      ? 'silver'
+      : journalRow.type === 'institute'
+        ? 'bronze'
+        : 'gold';
 
     return out;
   });

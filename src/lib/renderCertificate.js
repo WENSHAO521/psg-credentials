@@ -103,12 +103,21 @@ function removeIfEmpty(svgEl, id, value) {
   if (el) el.remove();
 }
 
-function selectSeal(svgEl, secretariatSigned) {
-  const standard = svgEl.querySelector("#seal-standard");
-  const secretariat = svgEl.querySelector("#seal-secretariat");
+// record.seal is 'gold' (journal, named signatory), 'bronze' (Research
+// Institute, named signatory), or 'silver' (nobody named -- the Secretariat
+// stepping in, regardless of journal vs institute). Exactly one of the three
+// seal groups is shown; the stamp-on-signature-line is silver-only and tied
+// to secretariat_signed since it represents the same "no named signer" case.
+function selectSeal(svgEl, seal, secretariatSigned) {
+  const groups = {
+    gold: svgEl.querySelector("#seal-standard"),
+    bronze: svgEl.querySelector("#seal-institute"),
+    silver: svgEl.querySelector("#seal-secretariat"),
+  };
+  for (const [key, el] of Object.entries(groups)) {
+    if (el) el.setAttribute("display", key === seal ? "inline" : "none");
+  }
   const stamp = svgEl.querySelector("#seal-signature-stamp");
-  if (standard) standard.setAttribute("display", secretariatSigned ? "none" : "inline");
-  if (secretariat) secretariat.setAttribute("display", secretariatSigned ? "inline" : "none");
   if (stamp) stamp.setAttribute("display", secretariatSigned ? "inline" : "none");
 }
 
@@ -147,7 +156,7 @@ export function buildCertificateSvg(templateText, record, qrDataUrl) {
 
   try {
     removeIfEmpty(svgEl, "field-issn", record.issn);
-    selectSeal(svgEl, record.secretariat_signed);
+    selectSeal(svgEl, record.seal, record.secretariat_signed);
     fitAllText(svgEl);
     injectQrCode(svgEl, qrDataUrl);
     // Strip the off-screen positioning before serializing — it was only ever

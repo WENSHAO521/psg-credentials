@@ -14,6 +14,13 @@ const ROLE_CODES = {
   'International Advisory Board': 'IAB',
   'Academic Advisory Board': 'AAB',
   'Reviewer': 'REV',
+  // Panorama Research Institute
+  'Research Fellow': 'RF',
+  'Associate Research Fellow': 'ARF',
+  'Visiting Scholar': 'VS',
+  'Research Assistant': 'RA',
+  'Institute Advisory Board': 'IABI',
+  'Project Contributor': 'PC',
 };
 
 function roleCodeFor(role) {

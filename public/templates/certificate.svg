@@ -30,6 +30,8 @@
     <path id="sealRingBottom" d="M52,200 A148,148 0 0,0 348,200" fill="none"/>
     <path id="secRingTop" d="M52,200 A148,148 0 0,1 348,200" fill="none"/>
     <path id="secRingBottom" d="M52,200 A148,148 0 0,0 348,200" fill="none"/>
+    <path id="instRingTop" d="M52,200 A148,148 0 0,1 348,200" fill="none"/>
+    <path id="instRingBottom" d="M52,200 A148,148 0 0,0 348,200" fill="none"/>
     <linearGradient id="silverRim" x1="15%" y1="0%" x2="85%" y2="100%">
       <stop offset="0%" stop-color="#F5F6F7"/>
       <stop offset="50%" stop-color="#AEB3BA"/>
@@ -39,6 +41,11 @@
       <stop offset="0%" stop-color="#F8ECC4"/>
       <stop offset="50%" stop-color="#C9A227"/>
       <stop offset="100%" stop-color="#8A6B1E"/>
+    </linearGradient>
+    <linearGradient id="bronzeRim" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#E8C9A0"/>
+      <stop offset="50%" stop-color="#A66B2E"/>
+      <stop offset="100%" stop-color="#6B4423"/>
     </linearGradient>
   </defs>
 
@@ -177,6 +184,27 @@
     <rect x="343" y="195" width="10" height="10" fill="#6B7078" transform="rotate(45 348 200)"/>
     <circle cx="200" cy="200" r="132" fill="none" stroke="#AEB3BA" stroke-width="1"/>
     <g transform="translate(200,200) scale(0.85) translate(-95,-100)" fill="#3A3D42">
+      <rect x="0" y="0" width="30" height="200"/>
+      <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z"/>
+      <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z"/>
+      <path d="M150 200 H50 V170 H150 V50 H180 V200 Z"/>
+      <rect x="160" y="10" width="30" height="30"/>
+    </g>
+  </g>
+  <g id="seal-institute" transform="translate(685,445) scale(0.275)" display="none">
+    <circle cx="200" cy="200" r="196" fill="none" stroke="#5C3A1E" stroke-width="1"/>
+    <circle cx="200" cy="200" r="172" fill="none" stroke="#E8C9A0" stroke-width="1.5"/>
+    <circle cx="200" cy="200" r="164" fill="none" stroke="url(#bronzeRim)" stroke-width="4"/>
+    <text font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="15" letter-spacing="4" fill="#3D2814">
+      <textPath href="#instRingTop" startOffset="50%" text-anchor="middle">PANORAMA SCHOLARLY GROUP</textPath>
+    </text>
+    <text font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="13" letter-spacing="3" fill="#3D2814">
+      <textPath href="#instRingBottom" startOffset="50%" text-anchor="middle">RESEARCH INSTITUTE &#183; OFFICIAL SEAL</textPath>
+    </text>
+    <rect x="47" y="195" width="10" height="10" fill="#3D2814" transform="rotate(45 52 200)"/>
+    <rect x="343" y="195" width="10" height="10" fill="#3D2814" transform="rotate(45 348 200)"/>
+    <circle cx="200" cy="200" r="132" fill="none" stroke="#5C3A1E" stroke-width="1"/>
+    <g transform="translate(200,200) scale(0.85) translate(-95,-100)" fill="#3D2814">
       <rect x="0" y="0" width="30" height="200"/>
       <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z"/>
       <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z"/>
