@@ -24,10 +24,10 @@ function addYears(dateStr, years) {
   return d.toISOString().slice(0, 10);
 }
 
-function loadJournalNames() {
+function loadJournals() {
   const raw = fs.readFileSync(JOURNALS_CSV_PATH, 'utf8');
   const parsed = Papa.parse(raw, { header: true, skipEmptyLines: true });
-  return parsed.data.map((r) => r.journal.trim());
+  return parsed.data;
 }
 
 // readline's own .question() hangs on the second call when stdin isn't a
@@ -62,7 +62,8 @@ async function ask(lineReader, question, { required = true, defaultValue } = {})
 
 async function main() {
   const rl = createLineReader();
-  const journalNames = loadJournalNames();
+  const journals = loadJournals();
+  const journalNames = journals.map((r) => r.journal.trim());
 
   console.log('=== Add a new certificate ===');
   console.log('(Ctrl+C to cancel any time; nothing is written until the end.)\n');
@@ -88,8 +89,22 @@ async function main() {
       console.log(`  "${role}" is not a known role. Valid roles:\n    - ${Object.keys(ROLE_CODES).join('\n    - ')}\n`);
     }
 
+    const journalType = (journals.find((r) => r.journal.trim() === journal) || {}).type;
+    if (journalType === 'institute') {
+      console.log(
+        '\n  Note: Panorama Research Institute appointment terms are role-specific, not a\n' +
+        '  blanket 3 years like journal certificates -- per the Institute charter\n' +
+        '  (research.panorama-sg.com/charter/): Research Fellow 1-3 years renewable,\n' +
+        '  Associate Research Fellow ~1 year renewable, Visiting Scholar 3-12 months,\n' +
+        '  Research Assistant project-specific (no fixed default). Check the real term\n' +
+        '  for this appointment before answering below -- do not accept a guessed default.\n'
+      );
+    }
+
     const issueDate = await ask(rl, 'Issue date (YYYY-MM-DD)', { defaultValue: today() });
-    const termYearsRaw = await ask(rl, 'Term length in years', { defaultValue: '3' });
+    const termYearsRaw = await ask(rl, 'Term length in years', {
+      defaultValue: journalType === 'institute' ? undefined : '3',
+    });
     const termYears = parseInt(termYearsRaw, 10);
     if (!Number.isInteger(termYears) || termYears <= 0) {
       throw new Error(`Invalid term length "${termYearsRaw}"`);
