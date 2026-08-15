@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { IconArrowRight } from "@tabler/icons-react";
 import { findById, certificateStatus } from "../lib/data.js";
 import StatusBadge from "../components/StatusBadge.jsx";
 import DocumentCard from "../components/DocumentCard.jsx";
@@ -93,9 +94,7 @@ export default function VerifyPage() {
                 className="w-full py-4 border-2 border-ink bg-ink text-paper-pure font-mono text-xs font-semibold tracking-[0.2em] uppercase hover:bg-paper-pure hover:text-ink active:scale-[0.98] active:translate-y-px transition-all duration-150 flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
               >
                 Verify
-                <span className="material-symbols-outlined text-base">
-                  arrow_forward
-                </span>
+                <IconArrowRight size={18} stroke={1.75} />
               </button>
             </form>
           </>
@@ -143,9 +142,7 @@ export default function VerifyPage() {
                   className="inline-flex items-center gap-2 mt-6 font-mono text-xs tracking-[0.1em] uppercase text-ink hover:text-red transition-colors underline underline-offset-4 decoration-1"
                 >
                   View certificate
-                  <span className="material-symbols-outlined text-sm">
-                    arrow_forward
-                  </span>
+                  <IconArrowRight size={16} stroke={1.75} />
                 </Link>
               </div>
             )}

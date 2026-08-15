@@ -87,16 +87,6 @@ body {
   }
 }
 
-.material-symbols-outlined {
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 400,
-    "GRAD" 0,
-    "opsz" 24;
-  font-size: 24px;
-  line-height: 1;
-  vertical-align: middle;
-}
 
 .cert-shell svg {
   width: 100%;

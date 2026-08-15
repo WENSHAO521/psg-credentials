@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { IconSearch, IconArrowRight } from "@tabler/icons-react";
 import { searchByName } from "../lib/data.js";
 import DocumentCard from "../components/DocumentCard.jsx";
 
@@ -72,7 +73,7 @@ export default function Home() {
             className="w-full py-4 border-2 border-ink bg-ink text-paper-pure font-mono text-xs font-semibold tracking-[0.2em] uppercase hover:bg-paper-pure hover:text-ink active:scale-[0.98] active:translate-y-px transition-all duration-150 flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
           >
             Search
-            <span className="material-symbols-outlined text-base">search</span>
+            <IconSearch size={18} stroke={1.75} />
           </button>
         </form>
 
@@ -106,9 +107,11 @@ export default function Home() {
                           {r.role} &middot; {r.journal}
                         </span>
                       </span>
-                      <span className="material-symbols-outlined text-steel group-hover:text-red group-hover:translate-x-0.5 transition-all">
-                        arrow_forward
-                      </span>
+                      <IconArrowRight
+                        size={20}
+                        stroke={1.75}
+                        className="text-steel group-hover:text-red group-hover:translate-x-0.5 transition-all shrink-0"
+                      />
                     </Link>
                   </li>
                 ))}
