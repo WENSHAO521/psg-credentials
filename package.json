@@ -6,6 +6,8 @@
   "scripts": {
     "assign-ids": "node scripts/assign-ids.js",
     "validate": "node scripts/validate-data.js",
+    "add-certificate": "node scripts/add-certificate.js",
+    "revoke-certificate": "node scripts/revoke-certificate.js",
     "prune-expired": "node scripts/prune-expired.js",
     "build:data": "node scripts/build-registry.js",
     "build": "npm run validate && npm run build:data && vite build",

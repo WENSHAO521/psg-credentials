@@ -1,5 +1,3 @@
-import { PDFDocument } from "pdf-lib";
-
 const PAGE_WIDTH = 842;
 const PAGE_HEIGHT = 595;
 
@@ -48,6 +46,11 @@ export async function downloadCertificatePng(svgString, certificateId) {
 }
 
 export async function downloadCertificatePdf(svgString, certificateId) {
+  // pdf-lib is the single largest dependency in this app and only the PDF
+  // export path needs it, so it's fetched on demand here instead of being in
+  // the initial bundle every visitor downloads just to search or verify.
+  const { PDFDocument } = await import("pdf-lib");
+
   const pngBlob = await svgStringToPngBlob(svgString, 3);
   const pngBytes = new Uint8Array(await pngBlob.arrayBuffer());
 

@@ -35,6 +35,11 @@
       <stop offset="50%" stop-color="#AEB3BA"/>
       <stop offset="100%" stop-color="#6B7078"/>
     </linearGradient>
+    <linearGradient id="goldRim" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#F8ECC4"/>
+      <stop offset="50%" stop-color="#C9A227"/>
+      <stop offset="100%" stop-color="#8A6B1E"/>
+    </linearGradient>
   </defs>
 
   <rect x="0" y="0" width="842" height="595" fill="#FFFFFF"/>
@@ -138,24 +143,24 @@
        own certificate can't be signed with their journal's own black/red seal
        stamp of authority over themself, so it gets the silver Secretariat seal). -->
   <g id="seal-standard" transform="translate(685,445) scale(0.275)">
-    <circle cx="200" cy="200" r="196" fill="none" stroke="#000000" stroke-width="1"/>
-    <circle cx="200" cy="200" r="172" fill="none" stroke="#E30613" stroke-width="1.5"/>
-    <circle cx="200" cy="200" r="164" fill="none" stroke="#000000" stroke-width="4"/>
-    <text font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="15" letter-spacing="4" fill="#000000">
+    <circle cx="200" cy="200" r="196" fill="none" stroke="#7A5D16" stroke-width="1"/>
+    <circle cx="200" cy="200" r="172" fill="none" stroke="#F8ECC4" stroke-width="1.5"/>
+    <circle cx="200" cy="200" r="164" fill="none" stroke="url(#goldRim)" stroke-width="4"/>
+    <text font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="15" letter-spacing="4" fill="#4A3A0F">
       <textPath href="#sealRingTop" startOffset="50%" text-anchor="middle">PANORAMA SCHOLARLY GROUP</textPath>
     </text>
-    <text font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="13" letter-spacing="3" fill="#E30613">
+    <text font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="13" letter-spacing="3" fill="#4A3A0F">
       <textPath href="#sealRingBottom" startOffset="50%" text-anchor="middle">ZERTIFIZIERT &#183; CERTIFIED</textPath>
     </text>
-    <rect x="47" y="195" width="10" height="10" fill="#E30613" transform="rotate(45 52 200)"/>
-    <rect x="343" y="195" width="10" height="10" fill="#E30613" transform="rotate(45 348 200)"/>
-    <circle cx="200" cy="200" r="132" fill="none" stroke="#6B6D72" stroke-width="1"/>
-    <g transform="translate(200,200) scale(0.85) translate(-95,-100)">
-      <rect x="0" y="0" width="30" height="200" fill="#000000"/>
-      <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z" fill="#E30613"/>
-      <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z" fill="#000000"/>
-      <path d="M150 200 H50 V170 H150 V50 H180 V200 Z" fill="#000000"/>
-      <rect x="160" y="10" width="30" height="30" fill="#E30613"/>
+    <rect x="47" y="195" width="10" height="10" fill="#4A3A0F" transform="rotate(45 52 200)"/>
+    <rect x="343" y="195" width="10" height="10" fill="#4A3A0F" transform="rotate(45 348 200)"/>
+    <circle cx="200" cy="200" r="132" fill="none" stroke="#7A5D16" stroke-width="1"/>
+    <g transform="translate(200,200) scale(0.85) translate(-95,-100)" fill="#3D2E0A">
+      <rect x="0" y="0" width="30" height="200"/>
+      <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z"/>
+      <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z"/>
+      <path d="M150 200 H50 V170 H150 V50 H180 V200 Z"/>
+      <rect x="160" y="10" width="30" height="30"/>
     </g>
   </g>
   <g id="seal-secretariat" transform="translate(685,445) scale(0.275)" display="none">
