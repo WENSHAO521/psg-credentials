@@ -56,8 +56,8 @@ export default function CertificatePage() {
     if (!svgString || !record) return;
     setExporting(kind);
     try {
-      if (kind === "png") await downloadCertificatePng(svgString, record.certificate_id);
-      else await downloadCertificatePdf(svgString, record.certificate_id);
+      if (kind === "png") await downloadCertificatePng(svgString, record);
+      else await downloadCertificatePdf(svgString, record);
     } catch (err) {
       console.error(err);
     } finally {
