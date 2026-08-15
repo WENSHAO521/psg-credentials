@@ -36,9 +36,10 @@ function bitsToBytes(bits) {
   return bytes;
 }
 
-// Mutates imageData in place, writing one payload bit into the blue
-// channel's LSB of each successive pixel (row-major from pixel 0).
-export function embedWatermark(imageData, payload) {
+// Writes one payload bit into the blue channel's LSB of each successive
+// pixel (row-major from pixel 0). `channels` is the stride per pixel (4 for
+// RGBA canvas ImageData, 3 for the raw RGB samples pdf-lib stores PDFs with).
+function embedBits(data, channels, payload) {
   const payloadBytes = stringToBytes(payload);
   if (payloadBytes.length > 0xffff) {
     throw new Error("Watermark payload too large");
@@ -51,28 +52,24 @@ export function embedWatermark(imageData, payload) {
   allBytes.set(payloadBytes, magicBytes.length + 2);
 
   const bits = bytesToBits(allBytes);
-  const data = imageData.data; // RGBA
-  const capacityPixels = data.length / 4;
+  const capacityPixels = data.length / channels;
   if (bits.length > capacityPixels) {
     throw new Error("Image too small to hold watermark payload");
   }
 
   for (let i = 0; i < bits.length; i++) {
-    const blueIndex = i * 4 + 2;
+    const blueIndex = i * channels + 2;
     data[blueIndex] = (data[blueIndex] & 0xfe) | bits[i];
   }
-  return imageData;
 }
 
 // Returns the decoded payload string, or null if no valid watermark is present.
-export function extractWatermark(imageData) {
-  const data = imageData.data;
-  const capacityPixels = data.length / 4;
+function extractBits(data, channels, capacityPixels) {
   if (capacityPixels < HEADER_BITS) return null;
 
   const headerBits = new Array(HEADER_BITS);
   for (let i = 0; i < HEADER_BITS; i++) {
-    headerBits[i] = data[i * 4 + 2] & 1;
+    headerBits[i] = data[i * channels + 2] & 1;
   }
   const headerBytes = bitsToBytes(headerBits);
   const magic = String.fromCharCode(...headerBytes.subarray(0, MAGIC.length));
@@ -84,7 +81,7 @@ export function extractWatermark(imageData) {
 
   const payloadBits = new Array(length * 8);
   for (let i = 0; i < payloadBits.length; i++) {
-    payloadBits[i] = data[(HEADER_BITS + i) * 4 + 2] & 1;
+    payloadBits[i] = data[(HEADER_BITS + i) * channels + 2] & 1;
   }
 
   try {
@@ -94,13 +91,29 @@ export function extractWatermark(imageData) {
   }
 }
 
+// Mutates imageData (RGBA canvas ImageData) in place.
+export function embedWatermark(imageData, payload) {
+  embedBits(imageData.data, 4, payload);
+  return imageData;
+}
+
+export function extractWatermark(imageData) {
+  return extractBits(imageData.data, 4, imageData.data.length / 4);
+}
+
 export function watermarkPayload(record) {
   return `${record.certificate_id}|${record.token}`;
 }
 
-// Loads an uploaded image file, extracts its watermark (if any), and
-// returns { certificateId, token } or null. Only works on image formats the
-// browser can decode (PNG, JPEG, etc.) -- not on PDFs.
+function decodeWatermarkPayload(payload) {
+  if (!payload) return null;
+  const [certificateId, token] = payload.split("|");
+  if (!certificateId || !token) return null;
+  return { certificateId, token };
+}
+
+// Loads an uploaded raster image (PNG, JPEG, etc. -- not PDF), extracts its
+// watermark, and returns { certificateId, token } or null.
 export async function extractWatermarkFromImageFile(file) {
   let bitmap;
   try {
@@ -117,10 +130,62 @@ export async function extractWatermarkFromImageFile(file) {
   bitmap.close?.();
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const payload = extractWatermark(imageData);
-  if (!payload) return null;
+  return decodeWatermarkPayload(extractWatermark(imageData));
+}
 
-  const [certificateId, token] = payload.split("|");
-  if (!certificateId || !token) return null;
-  return { certificateId, token };
+// Loads an uploaded certificate PDF and extracts the watermark from its
+// embedded page image directly from the PDF's object graph -- not by
+// re-rendering the page to a canvas. Re-rasterizing a PDF page resamples
+// pixels to fit the requested viewport, which would corrupt LSB data; the
+// raw image stream pdf-lib wrote when the PDF was exported is untouched, so
+// reading it back the same way recovers the watermark losslessly.
+export async function extractWatermarkFromPdfFile(file) {
+  const { PDFDocument, PDFName, PDFDict, PDFRawStream, decodePDFRawStream } = await import(
+    "pdf-lib"
+  );
+
+  let pdfDoc;
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    pdfDoc = await PDFDocument.load(bytes);
+  } catch {
+    return null;
+  }
+  if (pdfDoc.getPageCount() < 1) return null;
+
+  let xobjects;
+  try {
+    xobjects = pdfDoc.getPage(0).node.Resources()?.lookup(PDFName.of("XObject"), PDFDict);
+  } catch {
+    return null;
+  }
+  if (!xobjects) return null;
+
+  for (const key of xobjects.keys()) {
+    let stream;
+    try {
+      stream = pdfDoc.context.lookup(xobjects.get(key), PDFRawStream);
+    } catch {
+      continue;
+    }
+    if (!stream) continue;
+
+    const width = stream.dict.get(PDFName.of("Width"))?.asNumber();
+    const height = stream.dict.get(PDFName.of("Height"))?.asNumber();
+    if (!width || !height) continue;
+
+    let raw;
+    try {
+      raw = decodePDFRawStream(stream).decode();
+    } catch {
+      continue;
+    }
+
+    const channels = Math.round(raw.length / (width * height));
+    if (channels < 3) continue;
+
+    const decoded = decodeWatermarkPayload(extractBits(raw, channels, width * height));
+    if (decoded) return decoded;
+  }
+  return null;
 }

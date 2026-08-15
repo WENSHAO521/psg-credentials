@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { IconArrowRight } from "@tabler/icons-react";
 import { findById, certificateStatus } from "../lib/data.js";
-import { extractWatermarkFromImageFile } from "../lib/watermark.js";
+import { extractWatermarkFromImageFile, extractWatermarkFromPdfFile } from "../lib/watermark.js";
 import StatusBadge from "../components/StatusBadge.jsx";
 import DocumentCard from "../components/DocumentCard.jsx";
 
@@ -54,7 +54,10 @@ export default function VerifyPage() {
     if (!file) return;
 
     setUploadStatus("reading");
-    const found = await extractWatermarkFromImageFile(file);
+    const found =
+      file.type === "application/pdf"
+        ? await extractWatermarkFromPdfFile(file)
+        : await extractWatermarkFromImageFile(file);
     if (!found) {
       setUploadStatus("error");
       return;
@@ -129,26 +132,26 @@ export default function VerifyPage() {
                 htmlFor="cert-image-upload"
                 className="inline-block cursor-pointer py-3 px-6 border-2 border-ink bg-transparent text-ink hover:bg-ink hover:text-paper-pure active:scale-[0.98] transition-all duration-150 font-mono text-xs font-semibold tracking-[0.15em] uppercase focus-within:outline-2 focus-within:outline-red focus-within:outline-offset-2"
               >
-                {uploadStatus === "reading" ? "Reading image…" : "Upload certificate image"}
+                {uploadStatus === "reading" ? "Verifying file…" : "Verify by File Upload"}
                 <input
                   id="cert-image-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/*,application/pdf"
                   onChange={handleFileUpload}
                   disabled={uploadStatus === "reading"}
                   className="sr-only"
                 />
               </label>
               <p className="mt-3 text-xs text-steel max-w-sm mx-auto">
-                Downloaded certificate images carry a hidden watermark, so
-                uploading the original PNG (or a PDF page exported as an
-                image) verifies it even if the QR code is missing or unreadable.
+                For a direct document check, upload the certificate file as
+                downloaded from this registry. This authenticates the file
+                itself against our records, independent of the QR code.
               </p>
               {uploadStatus === "error" && (
                 <p className="mt-2 text-xs text-red">
-                  No watermark found in this image. It may not be an original
-                  certificate export &mdash; try the certificate number
-                  instead.
+                  This file could not be authenticated against our records.
+                  Confirm it is an unmodified download from this registry, or
+                  verify using the certificate number instead.
                 </p>
               )}
             </div>
