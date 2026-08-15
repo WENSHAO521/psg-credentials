@@ -8,7 +8,7 @@ export default function DocumentCard({ children, className = "" }) {
         src="/seal/psg-official-seal.svg"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none select-none absolute -bottom-16 -right-16 w-72 h-72 opacity-[0.05] dark:opacity-[0.22]"
+        className="pointer-events-none select-none absolute -bottom-16 -right-16 w-72 h-72 opacity-[0.05] dark:opacity-[0.08]"
       />
       <div className="relative p-8 md:p-14">{children}</div>
     </div>
