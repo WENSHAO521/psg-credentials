@@ -15,6 +15,8 @@ function fillPlaceholders(templateText, record) {
     "{{JOURNAL}}": record.journal,
     "{{VALID_FROM}}": record.valid_from,
     "{{VALID_UNTIL}}": record.valid_until,
+    "{{ISSUE_DATE}}": record.issue_date || "",
+    "{{DETAIL}}": record.detail || "",
     "{{CERTIFICATE_ID}}": record.certificate_id,
     "{{SIGNATORY_NAME}}": record.signatory_name || "",
     "{{SIGNATORY_TITLE}}": record.signatory_title || "",
@@ -74,12 +76,33 @@ function wrapIntoTwoLines(textEl, text, centerY, lineHeight) {
   textEl.appendChild(tspan2);
 }
 
+// Shrinks a centered text line to fit, falling back to a two-line wrap if
+// it's still too long even at a reasonable minimum size. Reads its target
+// centerY straight off the element's own y attribute (rather than a
+// hardcoded value) so the same helper works for #field-journal and
+// #field-detail regardless of which certificate template placed them --
+// paper titles / conference names / journal names all vary in length and
+// share this treatment.
+function fitWithWrapFallback(el) {
+  if (!el || !el.textContent) return;
+  const text = el.textContent;
+  const originalSize = parseFloat(el.getAttribute("font-size"));
+  const minSize = Math.max(originalSize * 0.55, 10);
+  const stillOverflows = shrinkToFit(el, FRAME_INNER_MAX_WIDTH, minSize);
+  if (stillOverflows) {
+    const centerY = parseFloat(el.getAttribute("y"));
+    el.setAttribute("font-size", (originalSize * 0.8).toFixed(1));
+    wrapIntoTwoLines(el, text, centerY, originalSize * 0.95);
+  }
+}
+
 function fitAllText(svgEl) {
   // querySelector, not getElementById: getElementById is a Document-only
   // method and this SVG root is a detached/off-screen Element.
   const nameEl = svgEl.querySelector("#field-name");
   const roleEl = svgEl.querySelector("#field-role");
   const journalEl = svgEl.querySelector("#field-journal");
+  const detailEl = svgEl.querySelector("#field-detail");
   const signatoryEl = svgEl.querySelector("#field-signatory-name");
 
   if (nameEl) shrinkToFit(nameEl, FRAME_INNER_MAX_WIDTH, 22);
@@ -87,14 +110,8 @@ function fitAllText(svgEl) {
   // Signature line runs x=70..230 (160pt); leave a small margin either side.
   if (signatoryEl && signatoryEl.textContent) shrinkToFit(signatoryEl, 150, 16);
 
-  if (journalEl) {
-    const journalText = journalEl.textContent;
-    const stillOverflows = shrinkToFit(journalEl, FRAME_INNER_MAX_WIDTH, 14);
-    if (stillOverflows) {
-      journalEl.setAttribute("font-size", "15");
-      wrapIntoTwoLines(journalEl, journalText, 356, 18);
-    }
-  }
+  fitWithWrapFallback(journalEl);
+  fitWithWrapFallback(detailEl);
 }
 
 function removeIfEmpty(svgEl, id, value) {
@@ -133,8 +150,15 @@ function injectQrCode(svgEl, qrDataUrl) {
   slot.appendChild(image);
 }
 
-export async function loadCertificateTemplate() {
-  const res = await fetch("/templates/certificate.svg");
+const TEMPLATE_PATHS = {
+  appointment: "/templates/certificate.svg",
+  paper_award: "/templates/certificate-award.svg",
+  conference_invitation: "/templates/certificate-invitation.svg",
+};
+
+export async function loadCertificateTemplate(certType = "appointment") {
+  const path = TEMPLATE_PATHS[certType] || TEMPLATE_PATHS.appointment;
+  const res = await fetch(path);
   if (!res.ok) throw new Error("Failed to load certificate template");
   return res.text();
 }

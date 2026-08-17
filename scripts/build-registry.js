@@ -8,6 +8,12 @@ const Papa = require('papaparse');
 const CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
 const JOURNALS_CSV_PATH = path.join(__dirname, '..', 'source', 'journals.csv');
 const OUT_PATH = path.join(__dirname, '..', 'public', 'data', 'certificates.json');
+const JOURNALS_OUT_PATH = path.join(__dirname, '..', 'public', 'data', 'journals.json');
+
+// Public directory fields only -- journals.csv has no contact info to leak,
+// but this keeps the same "explicit allowlist" discipline as PUBLIC_FIELDS
+// above rather than dumping the whole row.
+const JOURNAL_DIRECTORY_FIELDS = ['journal', 'code', 'issn', 'editor_in_chief', 'website_url', 'type'];
 
 // An Editor-in-Chief's own certificate can't be signed by "the journal's
 // editor-in-chief" (from journals.csv) -- that would be them signing their
@@ -25,6 +31,7 @@ const SECRETARIAT_TITLE = 'Secretariat, Panorama Scholarly Group';
 const PUBLIC_FIELDS = [
   'name', 'display_name', 'certificate_id', 'journal', 'role',
   'issue_date', 'valid_from', 'valid_until', 'token', 'status',
+  'cert_type', 'detail',
 ];
 
 function loadJournals() {
@@ -62,6 +69,7 @@ function main() {
   const records = parsed.data.map((row) => {
     const out = {};
     for (const field of PUBLIC_FIELDS) out[field] = (row[field] || '').trim();
+    if (!out.cert_type) out.cert_type = 'appointment';
 
     const journalRow = journals.get(out.journal);
     if (!journalRow) {
@@ -103,6 +111,18 @@ function main() {
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, JSON.stringify(records, null, 2) + '\n', 'utf8');
   console.log(`Wrote ${records.length} record(s) to ${OUT_PATH}`);
+
+  // Directory listing: journals and events (conferences), not the Institute
+  // (that already has its own dedicated /institute page and nav item).
+  const directory = [...journals.values()]
+    .filter((row) => row.type !== 'institute')
+    .map((row) => {
+      const out = {};
+      for (const field of JOURNAL_DIRECTORY_FIELDS) out[field] = (row[field] || '').trim();
+      return out;
+    });
+  fs.writeFileSync(JOURNALS_OUT_PATH, JSON.stringify(directory, null, 2) + '\n', 'utf8');
+  console.log(`Wrote ${directory.length} record(s) to ${JOURNALS_OUT_PATH}`);
 }
 
 main();

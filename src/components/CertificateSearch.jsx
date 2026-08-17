@@ -109,6 +109,11 @@ export default function CertificateSearch({
                         <span className="block font-mono text-xs text-steel mt-1">
                           {r.role} &middot; {r.journal}
                         </span>
+                        {r.detail && (
+                          <span className="block font-mono text-xs text-steel-dim mt-0.5">
+                            {r.detail}
+                          </span>
+                        )}
                       </span>
                       <IconArrowRight
                         size={20}

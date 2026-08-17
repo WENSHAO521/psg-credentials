@@ -1,4 +1,5 @@
 let cache = null;
+let journalsCache = null;
 
 export async function loadCertificates() {
   if (cache) return cache;
@@ -6,6 +7,14 @@ export async function loadCertificates() {
   if (!res.ok) throw new Error("Failed to load certificate registry");
   cache = await res.json();
   return cache;
+}
+
+export async function loadJournals() {
+  if (journalsCache) return journalsCache;
+  const res = await fetch("/data/journals.json");
+  if (!res.ok) throw new Error("Failed to load journal directory");
+  journalsCache = await res.json();
+  return journalsCache;
 }
 
 // Exact match only (case-insensitive) on the title-free `name` field -- not a

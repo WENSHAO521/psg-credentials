@@ -14,6 +14,12 @@ const ROLE_CODES = {
   'International Advisory Board': 'IAB',
   'Academic Advisory Board': 'AAB',
   'Reviewer': 'REV',
+  // One-time awards / invitations (cert_type paper_award / conference_invitation)
+  'Outstanding Paper Award': 'OPA',
+  'Best Paper Award': 'BPA',
+  'Invited Speaker': 'IVS',
+  'Keynote Speaker': 'KNS',
+  'Session Chair': 'SCH',
   // Panorama Research Institute
   'Research Fellow': 'RF',
   'Associate Research Fellow': 'ARF',

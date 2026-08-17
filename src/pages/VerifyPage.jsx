@@ -188,10 +188,12 @@ export default function VerifyPage() {
                   </div>
                   <div>
                     <dt className="text-steel uppercase tracking-[0.1em] mb-1">
-                      Term
+                      {outcome.record.cert_type && outcome.record.cert_type !== "appointment" ? "Date" : "Term"}
                     </dt>
                     <dd className="text-ink">
-                      {outcome.record.valid_from} - {outcome.record.valid_until}
+                      {outcome.record.cert_type && outcome.record.cert_type !== "appointment"
+                        ? outcome.record.issue_date
+                        : `${outcome.record.valid_from} - ${outcome.record.valid_until}`}
                     </dd>
                   </div>
                 </dl>

@@ -35,7 +35,7 @@ export default function CertificatePage() {
           width: 264,
           color: { dark: "#000000ff", light: "#ffffff00" },
         });
-        const template = await loadCertificateTemplate();
+        const template = await loadCertificateTemplate(found.cert_type);
         const svg = buildCertificateSvg(template, found, qrDataUrl);
         if (cancelled) return;
         setSvgString(svg);

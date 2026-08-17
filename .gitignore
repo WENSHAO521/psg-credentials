@@ -2,5 +2,6 @@ node_modules/
 dist/
 .DS_Store
 public/data/certificates.json
+public/data/journals.json
 prune-summary.json
 SPEC-v1.md

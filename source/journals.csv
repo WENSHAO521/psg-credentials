@@ -1,24 +1,24 @@
-journal,editor_in_chief,signatory_title,issn,code,type
-AI & Future Society,Zekai Yu,Editor-in-Chief,3053-4011,AFS,journal
-Comparative Philosophy and Religious Traditions,,Editor-in-Chief,,CPRT,journal
-Contemporary Review of Political Thought,Mengzhou Wu,Editor-in-Chief,3056-0977,CROPT,journal
-Climate Sustainability & Global Systems,Yaolin Zhang,Editor-in-Chief,3054-9663,CSGS,journal
-Computational Social Sciences Review,,Editor-in-Chief,,CSSR,journal
-"Food Systems, Safety & Sustainability",,Editor-in-Chief,,FSSS,journal
-Global Public Policy & Governance Review,,Editor-in-Chief,,GPPGR,journal
-"Global Review of Humanities, Arts, and Society",Sebastian Lenz,Editor-in-Chief,3052-539X,GRHAS,journal
-Health Nexus,Feifei Chen,Editor-in-Chief,3053-7037,HN,journal
-Health Nexus: Digital Health and Medical AI,,Editor-in-Chief,,HNDH,journal
-Journal of Dance and Embodied Structure,,Editor-in-Chief,,JDES,journal
-Journal of Engineering Systems and Applications,Zeyu Wang,Editor-in-Chief,3053-478X,JESA,journal
-Journal of Sport and Exercise Studies,Dr. Xingyi Xu,Editor-in-Chief,,SES,journal
-"Journal of Law, Psychology, and Communication Studies",Qilun Hu,Editor-in-Chief,3052-9654,JLPCS,journal
-Journal of Social Cognition and Communication,Yangyi Ren,Editor-in-Chief,3054-6958,JSCC,journal
-International Review of Education and Learning Sciences,Mengzhou Wu,Editor-in-Chief,,IRELS,journal
-PoliEcoM Administration Review,Yiming Yang,Editor-in-Chief,3053-3597,PEMR,journal
-Panorama Frontier Review,,Editor-in-Chief,,PFR,journal
-Resonance: Journal of Global Music Studies,Dr. Jiale Li,Editor-in-Chief,3053-4410,RES,journal
-Rural Governance and Green Development,Bing Wang,Editor-in-Chief,3053-7282,RGGD,journal
-Silence,Jacques Diderot,Editor-in-Chief,3054-4386,SILENCE,journal
-"Three Teachings Studies: Confucianism, Daoism, and Buddhism",Hengjie Wang,Editor-in-Chief,3053-6553,TTS,journal
-Panorama Research Institute,Zeyu Wang,Director,,PRI,institute
+journal,editor_in_chief,signatory_title,issn,code,type,website_url
+AI & Future Society,Zekai Yu,Editor-in-Chief,3053-4011,AFS,journal,
+Comparative Philosophy and Religious Traditions,,Editor-in-Chief,,CPRT,journal,
+Contemporary Review of Political Thought,Mengzhou Wu,Editor-in-Chief,3056-0977,CROPT,journal,
+Climate Sustainability & Global Systems,Yaolin Zhang,Editor-in-Chief,3054-9663,CSGS,journal,
+Computational Social Sciences Review,,Editor-in-Chief,,CSSR,journal,
+"Food Systems, Safety & Sustainability",,Editor-in-Chief,,FSSS,journal,
+Global Public Policy & Governance Review,,Editor-in-Chief,,GPPGR,journal,
+"Global Review of Humanities, Arts, and Society",Sebastian Lenz,Editor-in-Chief,3052-539X,GRHAS,journal,
+Health Nexus,Feifei Chen,Editor-in-Chief,3053-7037,HN,journal,https://journals.panorama-sg.com/index.php/HealthNexus/editorialTeam
+Health Nexus: Digital Health and Medical AI,,Editor-in-Chief,,HNDH,journal,
+Journal of Dance and Embodied Structure,,Editor-in-Chief,,JDES,journal,
+Journal of Engineering Systems and Applications,Zeyu Wang,Editor-in-Chief,3053-478X,JESA,journal,
+Journal of Sport and Exercise Studies,Dr. Xingyi Xu,Editor-in-Chief,,SES,journal,
+"Journal of Law, Psychology, and Communication Studies",Qilun Hu,Editor-in-Chief,3052-9654,JLPCS,journal,
+Journal of Social Cognition and Communication,Yangyi Ren,Editor-in-Chief,3054-6958,JSCC,journal,
+International Review of Education and Learning Sciences,Mengzhou Wu,Editor-in-Chief,,IRELS,journal,
+PoliEcoM Administration Review,Yiming Yang,Editor-in-Chief,3053-3597,PEMR,journal,
+Panorama Frontier Review,,Editor-in-Chief,,PFR,journal,
+Resonance: Journal of Global Music Studies,Dr. Jiale Li,Editor-in-Chief,3053-4410,RES,journal,
+Rural Governance and Green Development,Bing Wang,Editor-in-Chief,3053-7282,RGGD,journal,
+Silence,Jacques Diderot,Editor-in-Chief,3054-4386,SILENCE,journal,
+"Three Teachings Studies: Confucianism, Daoism, and Buddhism",Hengjie Wang,Editor-in-Chief,3053-6553,TTS,journal,
+Panorama Research Institute,Zeyu Wang,Director,,PRI,institute,

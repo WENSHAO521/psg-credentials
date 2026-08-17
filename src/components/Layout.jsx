@@ -34,15 +34,27 @@ export default function Layout({ children }) {
             PSG Credentials
           </span>
         </Link>
-        <nav className="font-mono text-xs tracking-[0.15em] uppercase flex items-center gap-6">
+        <nav className="font-mono text-xs tracking-[0.15em] uppercase flex items-center flex-wrap justify-end gap-x-5 gap-y-2 md:gap-x-6">
           <NavLink to="/" end className={navLinkClass}>
             Search
           </NavLink>
           <NavLink to="/institute" className={navLinkClass}>
             Institute
           </NavLink>
+          <NavLink to="/awards" className={navLinkClass}>
+            Awards
+          </NavLink>
+          <NavLink to="/events" className={navLinkClass}>
+            Events
+          </NavLink>
+          <NavLink to="/journals" className={navLinkClass}>
+            Journals
+          </NavLink>
           <NavLink to="/verify" className={navLinkClass}>
             Verify
+          </NavLink>
+          <NavLink to="/about" className={navLinkClass}>
+            About
           </NavLink>
         </nav>
       </header>

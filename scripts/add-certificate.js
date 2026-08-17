@@ -12,6 +12,12 @@ const { ROLE_CODES } = require('./lib/roleCodes');
 
 const CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
 const JOURNALS_CSV_PATH = path.join(__dirname, '..', 'source', 'journals.csv');
+const CERT_TYPES = ['appointment', 'paper_award', 'conference_invitation'];
+// One-time awards/invitations aren't a "term" that expires -- once granted,
+// they stand. Rather than inventing a separate no-expiry status, they just
+// get a valid_until far enough out that certificateStatus() never flips
+// them to "expired".
+const NO_EXPIRY_YEARS = 50;
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -69,13 +75,23 @@ async function main() {
   console.log('(Ctrl+C to cancel any time; nothing is written until the end.)\n');
 
   try {
+    let certType;
+    while (true) {
+      certType = await ask(rl, `Certificate type (${CERT_TYPES.join(' / ')})`, { defaultValue: 'appointment' });
+      if (CERT_TYPES.includes(certType)) break;
+      console.log(`  "${certType}" is not a known type. Valid types:\n    - ${CERT_TYPES.join('\n    - ')}\n`);
+    }
+
     const displayName = await ask(rl, 'Display name (as it should print on the certificate, e.g. "Dr. Jane Doe")');
     const defaultName = displayName.replace(/^(Dr\.|Prof\.|Ven\.)\s+/, '').replace(/,?\s*PhD$/i, '').trim();
     const name = await ask(rl, 'Plain name (used for exact-match search)', { defaultValue: defaultName });
 
+    const journalPrompt = certType === 'conference_invitation'
+      ? 'Conference (must match source/journals.csv exactly -- add it there first as a type=event row if new)'
+      : 'Journal (must match source/journals.csv exactly)';
     let journal;
     while (true) {
-      journal = await ask(rl, 'Journal (must match source/journals.csv exactly)');
+      journal = await ask(rl, journalPrompt);
       if (journalNames.includes(journal)) break;
       console.log(`  "${journal}" is not in source/journals.csv. Known journals:`);
       journalNames.forEach((j) => console.log(`    - ${j}`));
@@ -101,24 +117,43 @@ async function main() {
       );
     }
 
-    const issueDate = await ask(rl, 'Issue date (YYYY-MM-DD)', { defaultValue: today() });
-    const termYearsRaw = await ask(rl, 'Term length in years', {
-      defaultValue: journalType === 'institute' ? undefined : '3',
-    });
-    const termYears = parseInt(termYearsRaw, 10);
-    if (!Number.isInteger(termYears) || termYears <= 0) {
-      throw new Error(`Invalid term length "${termYearsRaw}"`);
+    const issueDate = await ask(rl, certType === 'appointment' ? 'Issue date (YYYY-MM-DD)' : 'Date awarded / event date (YYYY-MM-DD)', { defaultValue: today() });
+
+    let detail = '';
+    let validFrom, validUntil;
+    if (certType === 'appointment') {
+      const termYearsRaw = await ask(rl, 'Term length in years', {
+        defaultValue: journalType === 'institute' ? undefined : '3',
+      });
+      const termYears = parseInt(termYearsRaw, 10);
+      if (!Number.isInteger(termYears) || termYears <= 0) {
+        throw new Error(`Invalid term length "${termYearsRaw}"`);
+      }
+      validFrom = await ask(rl, 'Valid from (YYYY-MM-DD)', { defaultValue: issueDate });
+      validUntil = await ask(rl, 'Valid until (YYYY-MM-DD)', { defaultValue: addYears(validFrom, termYears) });
+    } else {
+      detail = await ask(rl, certType === 'paper_award'
+        ? 'Paper title'
+        : 'Event date & location (e.g. "Nov 12-14, 2026 · Shanghai, China")');
+      // One-time awards/invitations don't expire on a term -- valid_from/
+      // valid_until still exist (required columns) but are pinned far out
+      // so certificateStatus() never flips them to "expired".
+      validFrom = issueDate;
+      validUntil = addYears(issueDate, NO_EXPIRY_YEARS);
     }
-    const validFrom = await ask(rl, 'Valid from (YYYY-MM-DD)', { defaultValue: issueDate });
-    const validUntil = await ask(rl, 'Valid until (YYYY-MM-DD)', { defaultValue: addYears(validFrom, termYears) });
 
     console.log('\n--- Review ---');
+    console.log(`  Type         : ${certType}`);
     console.log(`  Display name : ${displayName}`);
     console.log(`  Search name  : ${name}`);
     console.log(`  Journal      : ${journal}`);
     console.log(`  Role         : ${role}`);
     console.log(`  Issue date   : ${issueDate}`);
-    console.log(`  Term         : ${validFrom} to ${validUntil}`);
+    if (certType === 'appointment') {
+      console.log(`  Term         : ${validFrom} to ${validUntil}`);
+    } else {
+      console.log(`  Detail       : ${detail}`);
+    }
     const confirm = await ask(rl, '\nAdd this certificate? (y/n)', { defaultValue: 'y' });
     if (confirm.toLowerCase() !== 'y') {
       console.log('Cancelled, nothing written.');
@@ -136,6 +171,8 @@ async function main() {
       issue_date: issueDate,
       valid_from: validFrom,
       valid_until: validUntil,
+      cert_type: certType,
+      detail,
       token: '',
       status: 'active',
       revoked_at: '',

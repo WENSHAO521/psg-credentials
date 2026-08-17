@@ -4,11 +4,15 @@ on:
   pull_request:
     paths:
       - 'source/certificates.csv'
+      - 'source/editorial-boards.csv'
+      - 'source/journals.csv'
       - 'scripts/**'
   push:
     branches: [main]
     paths:
       - 'source/certificates.csv'
+      - 'source/editorial-boards.csv'
+      - 'source/journals.csv'
       - 'scripts/**'
 
 jobs:
@@ -21,3 +25,8 @@ jobs:
           node-version: 20
       - run: npm install --omit=dev papaparse
       - run: node scripts/validate-data.js
+      # Informational only -- audit-roster never fails the build (it reports
+      # drift between the reference roster and issued certificates, which is
+      # often a to-do, not a broken CSV), it just leaves a record in the log
+      # instead of relying on someone remembering to run it by hand.
+      - run: node scripts/audit-roster.js
