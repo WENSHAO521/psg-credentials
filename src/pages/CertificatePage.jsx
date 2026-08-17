@@ -1,10 +1,33 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import QRCode from "qrcode";
+import { IconShare2, IconCheck } from "@tabler/icons-react";
 import { findById, certificateStatus } from "../lib/data.js";
 import { loadCertificateTemplate, buildCertificateSvg } from "../lib/renderCertificate.js";
 import { downloadCertificatePng, downloadCertificatePdf } from "../lib/exportCertificate.js";
 import StatusBadge from "../components/StatusBadge.jsx";
+
+// execCommand is deprecated, but it's still the only copy path that works
+// inside some restrictive in-app browsers (older WeChat/Android WebViews)
+// that don't expose the modern async Clipboard API.
+function legacyCopy(text) {
+  const el = document.createElement("textarea");
+  el.value = text;
+  el.setAttribute("readonly", "");
+  el.style.position = "fixed";
+  el.style.left = "-9999px";
+  document.body.appendChild(el);
+  el.select();
+  el.setSelectionRange(0, text.length);
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  document.body.removeChild(el);
+  return ok;
+}
 
 export default function CertificatePage() {
   const { id } = useParams();
@@ -12,6 +35,7 @@ export default function CertificatePage() {
   const [record, setRecord] = useState(null);
   const [svgString, setSvgString] = useState("");
   const [exporting, setExporting] = useState(null); // 'png' | 'pdf' | null
+  const [shareState, setShareState] = useState("idle"); // idle | copied
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +86,41 @@ export default function CertificatePage() {
       console.error(err);
     } finally {
       setExporting(null);
+    }
+  }
+
+  // /certificate/:id (this page's own URL) is what gets a rich preview when
+  // shared -- see functions/certificate/[id].js, which injects that
+  // person's name/role into the link's title and description on platforms
+  // that read Open Graph tags (LinkedIn, Twitter, WeChat, iMessage, etc.).
+  // WeChat's in-app browser in particular often lacks both navigator.share
+  // and the modern Clipboard API, so this falls all the way back to
+  // execCommand rather than just failing silently there.
+  async function handleShare() {
+    if (!record) return;
+    const url = window.location.href;
+    const shareData = {
+      title: `${record.display_name} - ${record.role}, ${record.journal}`,
+      url,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err?.name !== "AbortError") console.error(err);
+      }
+      return;
+    }
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else if (!legacyCopy(url)) {
+        throw new Error("Copy failed");
+      }
+      setShareState("copied");
+      setTimeout(() => setShareState("idle"), 2000);
+    } catch (err) {
+      console.error(err);
     }
   }
 
@@ -147,6 +206,22 @@ export default function CertificatePage() {
           className="py-3 px-6 border-2 border-ink bg-transparent text-ink hover:bg-ink hover:text-paper-pure active:scale-[0.98] transition-all duration-150 font-mono text-xs font-semibold tracking-[0.15em] uppercase disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
         >
           {exporting === "pdf" ? "Preparing…" : "Download PDF"}
+        </button>
+        <button
+          onClick={handleShare}
+          className="py-3 px-6 border-2 border-ink bg-transparent text-ink hover:bg-ink hover:text-paper-pure active:scale-[0.98] transition-all duration-150 font-mono text-xs font-semibold tracking-[0.15em] uppercase flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
+        >
+          {shareState === "copied" ? (
+            <>
+              Link Copied
+              <IconCheck size={16} stroke={1.75} />
+            </>
+          ) : (
+            <>
+              Share
+              <IconShare2 size={16} stroke={1.75} />
+            </>
+          )}
         </button>
       </div>
 
