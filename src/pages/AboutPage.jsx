@@ -16,12 +16,28 @@ export default function AboutPage() {
             What is a PSG credential?
           </h2>
           <p className="text-sm text-steel leading-relaxed">
-            Panorama Scholarly Group issues certificates for editorial board
-            appointments, Institute appointments, paper awards, and conference
-            invitations across its journals. Every certificate carries a
-            unique number, a QR code, and an invisible watermark embedded in
-            the exported file itself, so it can be checked independently of
-            who is presenting it.
+            Panorama Scholarly Group ("PSG") is an international academic
+            publisher operating a portfolio of peer-reviewed journals. This
+            registry is the official system of record for credentials it
+            issues -- editorial board appointments, Institute appointments,
+            paper awards, and conference invitations -- across those
+            journals. Every certificate carries a unique number, a QR code,
+            and an invisible watermark embedded in the exported file itself,
+            so its authenticity can be verified independently of who is
+            presenting it.
+          </p>
+          <p className="text-sm text-steel leading-relaxed">
+            To learn more about Panorama Scholarly Group, our journals, and
+            our editorial standards, visit our official website at{" "}
+            <a
+              href="https://panorama-sg.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ink hover:text-red underline underline-offset-4 decoration-1"
+            >
+              panorama-sg.com
+            </a>
+            .
           </p>
         </section>
 

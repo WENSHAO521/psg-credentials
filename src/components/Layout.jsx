@@ -105,8 +105,16 @@ export default function Layout({ children }) {
         <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-paper/80">
           &copy; {new Date().getFullYear()} Panorama Scholarly Group. All rights reserved.
         </div>
-        <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-paper/50">
-          Official credential verification registry
+        <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-paper/50 flex items-center gap-4">
+          <span>Official credential verification registry</span>
+          <a
+            href="https://panorama-sg.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-paper/80 hover:text-paper underline underline-offset-4 decoration-1"
+          >
+            panorama-sg.com
+          </a>
         </div>
       </footer>
     </div>
