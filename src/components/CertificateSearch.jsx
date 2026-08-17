@@ -11,6 +11,7 @@ export default function CertificateSearch({
   emptyHint,
   scope,
   fieldLabel = "Full Name",
+  fullHeight = true,
 }) {
   const [params, setParams] = useSearchParams();
   const q = params.get("q") || "";
@@ -44,16 +45,28 @@ export default function CertificateSearch({
   }
 
   return (
-    <div className="flex-grow flex items-center justify-center px-4 md:px-16 py-20">
+    <div
+      className={
+        fullHeight
+          ? "flex-grow flex items-center justify-center px-4 md:px-16 py-20"
+          : "w-full"
+      }
+    >
       <DocumentCard>
-        <div className="text-center mb-10 relative z-10">
-          <h1 className="font-sans font-extrabold text-3xl md:text-5xl leading-tight tracking-tight uppercase mb-4 text-balance">
-            {heading}
-          </h1>
-          <p className="font-sans text-base text-steel max-w-lg mx-auto">
-            {description}
-          </p>
-        </div>
+        {(heading || description) && (
+          <div className="text-center mb-10 relative z-10">
+            {heading && (
+              <h1 className="font-sans font-extrabold text-3xl md:text-5xl leading-tight tracking-tight uppercase mb-4 text-balance">
+                {heading}
+              </h1>
+            )}
+            {description && (
+              <p className="font-sans text-base text-steel max-w-lg mx-auto">
+                {description}
+              </p>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 relative z-10">
           <div className="flex flex-col">
