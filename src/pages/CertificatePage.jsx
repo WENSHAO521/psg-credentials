@@ -130,7 +130,10 @@ export default function CertificatePage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap justify-center">
+      {/* Status stays visible when printed on purpose -- a printed revoked
+          or expired certificate should still show that it isn't valid.
+          Only the interactive-only controls below are print:hidden. */}
+      <div className="print:hidden flex items-center gap-3 flex-wrap justify-center">
         <button
           onClick={() => handleExport("png")}
           disabled={exporting !== null}
@@ -149,7 +152,7 @@ export default function CertificatePage() {
 
       <Link
         to="/"
-        className="font-mono text-xs tracking-[0.1em] uppercase text-steel hover:text-ink transition-colors underline underline-offset-4 decoration-1"
+        className="print:hidden font-mono text-xs tracking-[0.1em] uppercase text-steel hover:text-ink transition-colors underline underline-offset-4 decoration-1"
       >
         Back to search
       </Link>

@@ -53,7 +53,7 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-paper text-ink grid-bg font-sans">
-      <header className="w-full border-b-2 border-ink bg-paper/90 backdrop-blur-sm sticky top-0 z-40">
+      <header className="print:hidden w-full border-b-2 border-ink bg-paper/90 backdrop-blur-sm sticky top-0 z-40">
         <div className="px-4 md:px-16 py-3 flex items-center justify-between">
           <Link
             to="/"
@@ -101,7 +101,7 @@ export default function Layout({ children }) {
 
       <main className="flex-grow flex flex-col relative z-10">{children}</main>
 
-      <footer className="w-full border-t-2 border-ink bg-ink text-paper px-4 md:px-16 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
+      <footer className="print:hidden w-full border-t-2 border-ink bg-ink text-paper px-4 md:px-16 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-paper/80">
           &copy; {new Date().getFullYear()} Panorama Scholarly Group. All rights reserved.
         </div>

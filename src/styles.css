@@ -137,3 +137,24 @@ body {
     linear-gradient(to bottom, var(--color-surface-line) 1px, transparent 1px);
   background-size: 40px 40px;
 }
+
+/* Printing a certificate page should print the certificate, not the site
+   chrome around it -- nav/footer/buttons carry print:hidden (see Layout.jsx,
+   CertificatePage.jsx). This just sets the physical page up to match the
+   certificate's own landscape aspect ratio and strips decorative textures
+   that only make sense on screen. */
+@media print {
+  @page {
+    size: landscape;
+    margin: 0.4in;
+  }
+  body {
+    background: #fff;
+  }
+  .grid-bg {
+    background-image: none;
+  }
+  .cert-shell {
+    box-shadow: none !important;
+  }
+}

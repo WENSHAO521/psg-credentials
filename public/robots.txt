@@ -1,3 +1,4 @@
 User-agent: *
 Disallow: /certificate/
-Disallow: /verify
+
+Sitemap: https://credentials.panorama-sg.com/sitemap.xml
