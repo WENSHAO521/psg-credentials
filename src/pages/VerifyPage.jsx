@@ -25,7 +25,7 @@ export default function VerifyPage() {
       setPhase("done");
       return;
     }
-    if (token && record.token !== token) {
+    if (token && record.token.toLowerCase() !== token.trim().toLowerCase()) {
       setOutcome({ variant: "invalid", record: null });
       setPhase("done");
       return;
@@ -179,7 +179,7 @@ export default function VerifyPage() {
                 <p className="text-steel text-sm mb-6">
                   {outcome.record.role} &middot; {outcome.record.journal}
                 </p>
-                <dl className="grid grid-cols-2 gap-4 text-left border-t border-surface-line pt-6 font-mono text-xs">
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left border-t border-surface-line pt-6 font-mono text-xs">
                   <div>
                     <dt className="text-steel uppercase tracking-[0.1em] mb-1">
                       Certificate No.

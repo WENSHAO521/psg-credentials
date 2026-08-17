@@ -32,8 +32,8 @@ export default function JournalsPage() {
         {journals && (
           <ul className="flex flex-col divide-y divide-surface-line border-t border-b border-surface-line">
             {journals.map((j) => (
-              <li key={j.journal} className="flex items-center justify-between gap-4 py-4">
-                <div>
+              <li key={j.journal} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4">
+                <div className="min-w-0">
                   <span className="block font-sans font-semibold text-ink">
                     {j.journal}
                     {j.type === "event" && (

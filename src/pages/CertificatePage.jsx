@@ -120,8 +120,14 @@ export default function CertificatePage() {
         )}
       </div>
 
-      <div className="cert-shell max-w-4xl w-full border border-surface-line shadow-[0_1px_3px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.10)]">
-        <div dangerouslySetInnerHTML={{ __html: svgString }} />
+      {/* On a narrow phone, shrinking an A4-landscape document to fit the
+          screen width makes its fine print unreadably small. Below the
+          min-width, this scrolls horizontally in its own box instead of
+          shrinking further -- the page itself never scrolls sideways. */}
+      <div className="max-w-4xl w-full overflow-x-auto">
+        <div className="cert-shell min-w-[600px] border border-surface-line shadow-[0_1px_3px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.10)]">
+          <div dangerouslySetInnerHTML={{ __html: svgString }} />
+        </div>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap justify-center">

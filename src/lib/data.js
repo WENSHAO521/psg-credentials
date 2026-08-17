@@ -41,9 +41,14 @@ export async function searchByName(query, { scope } = {}) {
   return scope ? matches.filter(scope) : matches;
 }
 
+// Case-insensitive: certificate numbers are always printed/generated in
+// uppercase, but typing one in by hand (especially on a phone keyboard,
+// which likes to auto-lowercase) shouldn't require matching that exactly.
 export async function findById(certificateId) {
   const records = await loadCertificates();
-  return records.find((r) => r.certificate_id === certificateId) || null;
+  const q = (certificateId || "").trim().toLowerCase();
+  if (!q) return null;
+  return records.find((r) => r.certificate_id.toLowerCase() === q) || null;
 }
 
 export function certificateStatus(record) {

@@ -103,15 +103,15 @@ export default function CertificateSearch({
                       to={`/certificate/${r.certificate_id}`}
                       className="flex items-center justify-between gap-4 border border-surface-line hover:border-ink px-5 py-4 transition-colors group focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
                     >
-                      <span>
-                        <span className="block font-sans font-semibold text-ink">
+                      <span className="min-w-0">
+                        <span className="block font-sans font-semibold text-ink truncate">
                           {r.display_name}
                         </span>
-                        <span className="block font-mono text-xs text-steel mt-1">
+                        <span className="block font-mono text-xs text-steel mt-1 truncate">
                           {r.role} &middot; {r.journal}
                         </span>
                         {r.detail && (
-                          <span className="block font-mono text-xs text-steel-dim mt-0.5">
+                          <span className="block font-mono text-xs text-steel-dim mt-0.5 truncate">
                             {r.detail}
                           </span>
                         )}

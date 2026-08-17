@@ -1,4 +1,6 @@
-import { Link, NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { IconMenu2, IconX } from "@tabler/icons-react";
 
 function Monogram({ className }) {
   return (
@@ -21,42 +23,80 @@ function navLinkClass({ isActive }) {
   }`;
 }
 
+// Same link, styled for the stacked mobile panel instead of the inline
+// underline-on-active desktop nav.
+function mobileNavLinkClass({ isActive }) {
+  return `block w-full py-3 px-1 border-b border-surface-line transition-colors ${
+    isActive ? "text-red" : "text-ink"
+  }`;
+}
+
+const NAV_ITEMS = [
+  { to: "/", label: "Search", end: true },
+  { to: "/institute", label: "Institute" },
+  { to: "/awards", label: "Awards" },
+  { to: "/events", label: "Events" },
+  { to: "/journals", label: "Journals" },
+  { to: "/verify", label: "Verify" },
+  { to: "/about", label: "About" },
+];
+
 export default function Layout({ children }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Close the mobile menu whenever navigation happens, so a tapped link
+  // doesn't leave the panel hanging open over the next page.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location]);
+
   return (
     <div className="min-h-screen flex flex-col bg-paper text-ink grid-bg font-sans">
-      <header className="w-full border-b-2 border-ink px-4 md:px-16 py-3 flex items-center justify-between bg-paper/90 backdrop-blur-sm sticky top-0 z-40">
-        <Link
-          to="/"
-          className="flex items-center gap-2.5 rounded-sm focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-4"
-        >
-          <Monogram className="h-7 w-auto text-ink" />
-          <span className="font-mono text-xs font-semibold tracking-[0.2em] uppercase text-ink">
-            PSG Credentials
-          </span>
-        </Link>
-        <nav className="font-mono text-xs tracking-[0.15em] uppercase flex items-center flex-wrap justify-end gap-x-5 gap-y-2 md:gap-x-6">
-          <NavLink to="/" end className={navLinkClass}>
-            Search
-          </NavLink>
-          <NavLink to="/institute" className={navLinkClass}>
-            Institute
-          </NavLink>
-          <NavLink to="/awards" className={navLinkClass}>
-            Awards
-          </NavLink>
-          <NavLink to="/events" className={navLinkClass}>
-            Events
-          </NavLink>
-          <NavLink to="/journals" className={navLinkClass}>
-            Journals
-          </NavLink>
-          <NavLink to="/verify" className={navLinkClass}>
-            Verify
-          </NavLink>
-          <NavLink to="/about" className={navLinkClass}>
-            About
-          </NavLink>
-        </nav>
+      <header className="w-full border-b-2 border-ink bg-paper/90 backdrop-blur-sm sticky top-0 z-40">
+        <div className="px-4 md:px-16 py-3 flex items-center justify-between">
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 rounded-sm focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-4"
+          >
+            <Monogram className="h-7 w-auto text-ink" />
+            <span className="font-mono text-xs font-semibold tracking-[0.2em] uppercase text-ink">
+              PSG Credentials
+            </span>
+          </Link>
+
+          <nav className="hidden md:flex font-mono text-xs tracking-[0.15em] uppercase items-center gap-x-6">
+            {NAV_ITEMS.map((item) => (
+              <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            className="md:hidden p-2 -mr-2 text-ink focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
+          >
+            {menuOpen ? <IconX size={22} stroke={1.75} /> : <IconMenu2 size={22} stroke={1.75} />}
+          </button>
+        </div>
+
+        {menuOpen && (
+          <nav
+            id="mobile-nav"
+            className="md:hidden border-t border-surface-line px-4 py-2 font-mono text-sm tracking-[0.1em] uppercase flex flex-col"
+          >
+            {NAV_ITEMS.map((item) => (
+              <NavLink key={item.to} to={item.to} end={item.end} className={mobileNavLinkClass}>
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        )}
       </header>
 
       <main className="flex-grow flex flex-col relative z-10">{children}</main>
