@@ -10,6 +10,7 @@ export default function CertificateSearch({
   placeholder,
   emptyHint,
   scope,
+  fieldLabel = "Full Name",
 }) {
   const [params, setParams] = useSearchParams();
   const q = params.get("q") || "";
@@ -60,7 +61,7 @@ export default function CertificateSearch({
               htmlFor="name-q"
               className="font-mono text-xs font-semibold tracking-[0.15em] uppercase text-steel mb-2"
             >
-              Full Name
+              {fieldLabel}
             </label>
             <input
               id="name-q"
