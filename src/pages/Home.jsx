@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import CertificateSearch from "../components/CertificateSearch.jsx";
 import Reveal from "../components/Reveal.jsx";
+import SampleCertificate from "../components/SampleCertificate.jsx";
 import { useInView } from "../lib/useInView.js";
 import { loadCertificates, loadJournals } from "../lib/data.js";
 
@@ -210,14 +211,9 @@ export default function Home() {
           </div>
 
           <div className="hidden lg:flex flex-col items-center justify-center gap-4">
-            <img
-              src="/seal/psg-official-seal.svg"
-              alt=""
-              aria-hidden="true"
-              className="w-56 h-56 animate-seal-draw-in"
-            />
-            <p className="font-mono text-xs text-steel-dim text-center max-w-[220px]">
-              Every certificate carries this seal, a unique number, and a QR code that verifies it.
+            <SampleCertificate className="w-full max-w-md animate-seal-draw-in" />
+            <p className="font-mono text-xs text-steel-dim text-center max-w-[280px]">
+              A sample. Every real certificate carries this seal, a unique number, and a QR code that verifies it.
             </p>
           </div>
         </div>
