@@ -138,6 +138,11 @@ function selectSeal(svgEl, seal, secretariatSigned) {
   if (stamp) stamp.setAttribute("display", secretariatSigned ? "inline" : "none");
 }
 
+function toggleInstituteLogo(svgEl, journal) {
+  const el = svgEl.querySelector("#logo-institute");
+  if (el) el.setAttribute("display", journal === "Panorama Research Institute" ? "inline" : "none");
+}
+
 function injectQrCode(svgEl, qrDataUrl) {
   const slot = svgEl.querySelector("#qr-slot");
   if (!slot) return;
@@ -181,6 +186,7 @@ export function buildCertificateSvg(templateText, record, qrDataUrl) {
   try {
     removeIfEmpty(svgEl, "field-issn", record.issn);
     selectSeal(svgEl, record.seal, record.secretariat_signed);
+    toggleInstituteLogo(svgEl, record.journal);
     fitAllText(svgEl);
     injectQrCode(svgEl, qrDataUrl);
     // Strip the off-screen positioning before serializing — it was only ever

@@ -18,6 +18,7 @@ Single family throughout: Arial/Helvetica (matches the supplied logo). Hierarchy
 ## Assets
 
 - [`logo/psg-logo.svg`](logo/psg-logo.svg) — primary lockup (mark + wordmark)
+- [`logo/psg-institute-logo.svg`](logo/psg-institute-logo.svg) — Research Institute sub-brand mark (stacked), used on Institute certificates only
 - [`seal/psg-official-seal.svg`](seal/psg-official-seal.svg) — official seal, gauge-bezel ring, bilingual ring text (`ZERTIFIZIERT · CERTIFIED`)
 - [`templates/certificate.svg`](templates/certificate.svg) — V1 certificate master template
 

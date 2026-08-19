@@ -1,0 +1,9 @@
+<svg viewBox="0 0 240 190" xmlns="http://www.w3.org/2000/svg">
+  <rect width="240" height="190" fill="none" />
+  <g transform="translate(120, 46)">
+    <circle cx="0" cy="0" r="18" stroke="#333333" stroke-width="2.4" fill="none" />
+    <circle cx="0" cy="0" r="9" fill="#999999" />
+  </g>
+  <text x="120" y="108" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="34" letter-spacing="2" fill="#333333">PANORAMA</text>
+  <text x="120" y="136" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="300" font-size="13" letter-spacing="5" fill="#666666">RESEARCH INSTITUTE</text>
+</svg>
