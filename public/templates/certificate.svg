@@ -96,6 +96,15 @@
 
   <line x1="70" y1="96" x2="778" y2="96" stroke="#6B6D72" stroke-width="0.75" opacity="0.4"/>
 
+  <!-- watermark, Research Institute certificates only, toggled alongside
+       logo-institute above. Painted before the body text so it sits behind
+       it (SVG stacking follows document order); very low opacity keeps it
+       a background texture rather than competing with the text on top. -->
+  <g id="watermark-institute" display="none" opacity="0.05">
+    <circle cx="421" cy="290" r="130" fill="none" stroke="#000000" stroke-width="3"/>
+    <circle cx="421" cy="290" r="60" fill="#000000"/>
+  </g>
+
   <!-- body -->
   <text x="421" y="170" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="11" letter-spacing="3" fill="#6B6D72">THIS CERTIFIES THAT</text>
 

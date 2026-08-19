@@ -139,8 +139,11 @@ function selectSeal(svgEl, seal, secretariatSigned) {
 }
 
 function toggleInstituteLogo(svgEl, journal) {
-  const el = svgEl.querySelector("#logo-institute");
-  if (el) el.setAttribute("display", journal === "Panorama Research Institute" ? "inline" : "none");
+  const show = journal === "Panorama Research Institute";
+  const logo = svgEl.querySelector("#logo-institute");
+  if (logo) logo.setAttribute("display", show ? "inline" : "none");
+  const watermark = svgEl.querySelector("#watermark-institute");
+  if (watermark) watermark.setAttribute("display", show ? "inline" : "none");
 }
 
 function injectQrCode(svgEl, qrDataUrl) {
