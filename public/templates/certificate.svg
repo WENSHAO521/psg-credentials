@@ -85,9 +85,7 @@
        gap between the header text and the hairline separator (y96) so no
        other coordinates need to shift. -->
   <g id="logo-institute" display="none">
-    <circle cx="119.5" cy="88.5" r="4.4" fill="none" stroke="#6B6D72" stroke-width="1.1"/>
-    <circle cx="119.5" cy="88.5" r="1.7" fill="#6B6D72"/>
-    <text x="129" y="91.5" font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="8" letter-spacing="1.3" fill="#6B6D72">PANORAMA RESEARCH INSTITUTE</text>
+    <text x="126" y="91.5" font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="8" letter-spacing="1.3" fill="#6B6D72">PANORAMA RESEARCH INSTITUTE</text>
   </g>
 
   <!-- header: certificate type + id, right -->
@@ -98,11 +96,20 @@
 
   <!-- watermark, Research Institute certificates only, toggled alongside
        logo-institute above. Painted before the body text so it sits behind
-       it (SVG stacking follows document order); very low opacity keeps it
-       a background texture rather than competing with the text on top. -->
-  <g id="watermark-institute" display="none" opacity="0.05">
-    <circle cx="421" cy="290" r="130" fill="none" stroke="#000000" stroke-width="3"/>
-    <circle cx="421" cy="290" r="60" fill="#000000"/>
+       it (SVG stacking follows document order). Inlined 1:1 from
+       logo/psg-institute-logo.svg (viewBox 0 0 240 190, content centered
+       around its own 120,95) rather than referenced via <image>, so
+       canvas rasterization in exportCertificate.js doesn't depend on a
+       second same-origin fetch resolving before the snapshot is taken.
+       Very low opacity keeps it a background texture, not a second logo
+       competing with the text on top. -->
+  <g id="watermark-institute" display="none" opacity="0.05" transform="translate(421,290) scale(1.083) translate(-120,-95)">
+    <g transform="translate(120, 46)">
+      <circle cx="0" cy="0" r="18" stroke="#333333" stroke-width="2.4" fill="none"/>
+      <circle cx="0" cy="0" r="9" fill="#999999"/>
+    </g>
+    <text x="120" y="108" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="34" letter-spacing="2" fill="#333333">PANORAMA</text>
+    <text x="120" y="136" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="300" font-size="13" letter-spacing="5" fill="#666666">RESEARCH INSTITUTE</text>
   </g>
 
   <!-- body -->
