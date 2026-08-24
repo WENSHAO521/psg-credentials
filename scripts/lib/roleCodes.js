@@ -9,6 +9,7 @@ const ROLE_CODES = {
   'Editorial Board Member (Chair)': 'EBC',
   'Chair of the Editorial Board': 'EBC',
   'Youth Editorial Board Member': 'YEB',
+  'Young Editorial Board Member': 'YEB',
   'Early Career Editorial Board': 'ECB',
   'Guest Editor': 'GE',
   'International Advisory Board': 'IAB',
