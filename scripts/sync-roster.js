@@ -190,14 +190,15 @@ async function fetchHtml(url) {
 }
 
 // Every journal's board is standardising on <home>/editorial-board, so that's
-// always read, linked from the homepage or not. Until every journal has moved
-// there, whatever board page the homepage links to and the stock OJS
-// about/editorialTeam are read too (all found pages count as one roster).
+// always read, linked from the homepage or not. OJS's stock about/editorialTeam
+// isn't used by the journals and is never read on its own; until every journal
+// has moved, whatever board page the homepage links to is read too (all found
+// pages count as one roster).
 function journalSource(websiteUrl) {
   const home = websiteUrl.replace(/\/+$/, '').replace(/\/(about\/)?editorialTeam$/i, '');
   return {
     start: [home],
-    also: [`${home}/editorial-board`, `${home}/about/editorialTeam`],
+    also: [`${home}/editorial-board`],
     follow: JOURNAL_ROSTER_LINK,
   };
 }
