@@ -1,7 +1,8 @@
 // Monthly roster check against the live websites: for every journal in
-// source/journals.csv (its OJS editorialTeam page) and for the Panorama
-// Research Institute (research.panorama-sg.com), fetches the public member
-// page(s) and checks that each active appointment certificate holder is still
+// source/journals.csv (its editorial board / team pages, found by following
+// the journal homepage's links) and for the Panorama Research Institute
+// (research.panorama-sg.com, its People pages), fetches the public member
+// pages and checks that each active appointment certificate holder is still
 // listed there. Anyone no longer listed has their certificate revoked
 // automatically (status=revoked, revoked_at=today), which starts the usual
 // 30-day grace period in scripts/prune-expired.js -- during that window the
@@ -15,7 +16,7 @@
 //   - matching is "does this person's name appear anywhere on the page", not
 //     a parse of the page layout, so a theme change doesn't look like the
 //     whole board left
-//   - a source that can't be fetched, or returns a near-empty page, is
+//   - a source where no roster page can be found or read is
 //     skipped (never treated as "everyone left")
 //   - if more than MAX_MISSING_RATIO of a source's holders vanish at once,
 //     nothing is revoked for that source -- it's reported for a human to look
@@ -36,17 +37,26 @@ const CERTS_CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
 const JOURNALS_CSV_PATH = path.join(__dirname, '..', 'source', 'journals.csv');
 const SUMMARY_PATH = path.join(__dirname, '..', 'roster-sync-summary.json');
 
-// Sources that aren't an OJS journal: the page(s) to read, and whether to
-// also follow same-site links from them (the institute site's member listing
-// isn't at a fixed OJS path, so we read the whole small site).
+// Every source is read the same way: fetch its start page(s), follow the
+// same-site links whose URL looks like a roster page, and check names against
+// the combined text of those roster pages. The sites use custom themes, so the
+// board lives at a different path per journal (/csgs/Editorial-Board,
+// /jlpcs/EditorialBoard, /tts/junior-editorial-board, /afs/editorialTeam, ...);
+// following the journal's own navigation finds it wherever it is.
+const JOURNAL_ROSTER_LINK = /editorial[-_]?(team|board)|junior[-_]?editorial|masthead/i;
+const INSTITUTE_ROSTER_LINK = /people|fellow|leadership|director|assistant|intern|visiting|scholar|advisory|contributor|member|staff|team/i;
 const EXTRA_SOURCES = {
-  'Panorama Research Institute': { urls: ['https://research.panorama-sg.com/'], crawl: true },
+  'Panorama Research Institute': {
+    start: ['https://research.panorama-sg.com/'],
+    also: [],
+    follow: INSTITUTE_ROSTER_LINK,
+  },
 };
 
 const MAX_MISSING_RATIO = 0.5;
 const MIN_MISSING_FOR_RATIO_GUARD = 3;
 const MIN_PAGE_TEXT_LENGTH = 200;
-const MAX_CRAWL_PAGES = 40;
+const MAX_CRAWL_PAGES = 25;
 const FETCH_TIMEOUT_MS = 30000;
 const USER_AGENT = 'psg-credentials-roster-sync (+https://github.com/wenshao521/psg-credentials)';
 
@@ -70,7 +80,7 @@ function loadCsv(csvPath) {
 function normalize(s) {
   return ` ${(s || '')
     .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()} `;
@@ -126,63 +136,57 @@ async function fetchHtml(url) {
   return res.text();
 }
 
-// OJS serves the board at <journal>/about/editorialTeam; journals.csv holds the
-// journal's home URL (and in one case already the editorialTeam URL).
-function editorialTeamUrls(websiteUrl) {
-  const base = websiteUrl.replace(/\/+$/, '').replace(/\/(about\/)?editorialTeam$/i, '');
-  return [...new Set([`${base}/about/editorialTeam`, websiteUrl])];
+// journals.csv holds the journal's home URL (in one case its editorialTeam
+// URL). Besides whatever the homepage links to, always try the stock OJS
+// path too.
+function journalSource(websiteUrl) {
+  const home = websiteUrl.replace(/\/+$/, '').replace(/\/(about\/)?editorialTeam$/i, '');
+  return { start: [home], also: [`${home}/about/editorialTeam`], follow: JOURNAL_ROSTER_LINK };
 }
 
-// Returns { text, urls } for a source, or throws if nothing usable came back.
-async function loadSourceText({ urls, crawl }) {
+function rosterLinks(links, follow) {
+  // Skip unrendered template placeholders (${...}) some themes leave in hrefs.
+  return links.filter((l) => !/%7B|\$\{/i.test(l) && follow.test(new URL(l).pathname));
+}
+
+// Returns { text, urls, links } for a source, or throws if no roster page could
+// be read -- the start page alone (mostly navigation) never counts as a roster.
+async function loadSourceText({ start, also, follow }) {
   const errors = [];
+  const candidates = new Set(also);
+  const allLinks = [];
 
-  if (!crawl) {
-    // Candidates are alternatives: first one that yields a real page wins.
-    for (const url of urls) {
-      try {
-        const html = await fetchHtml(url);
-        const text = htmlToText(html);
-        if (text.replace(/\s+/g, ' ').trim().length >= MIN_PAGE_TEXT_LENGTH) {
-          return { text, urls: [url], links: sameSiteLinks(html, url) };
-        }
-        errors.push(`${url}: page is nearly empty`);
-      } catch (err) {
-        errors.push(`${url}: ${err.message}`);
-      }
-    }
-    throw new Error(errors.join('; '));
-  }
-
-  // Crawl: read the start page(s) plus every same-site page they link to
-  // (one level deep), and treat the combined text as the roster.
-  const queue = [...urls];
-  const seen = new Set();
-  const texts = [];
-  const okUrls = [];
-  let depth0 = urls.length;
-  while (queue.length && seen.size < MAX_CRAWL_PAGES) {
-    const url = queue.shift();
-    if (seen.has(url)) continue;
-    seen.add(url);
-    const isStart = depth0 > 0;
-    depth0 -= 1;
+  for (const url of start) {
     try {
       const html = await fetchHtml(url);
-      texts.push(htmlToText(html));
-      okUrls.push(url);
-      if (isStart) queue.push(...sameSiteLinks(html, url));
+      const links = sameSiteLinks(html, url);
+      allLinks.push(...links);
+      for (const l of rosterLinks(links, follow)) candidates.add(l);
     } catch (err) {
       errors.push(`${url}: ${err.message}`);
     }
   }
-  const text = texts.join('\n');
-  // The start page itself must have loaded; otherwise we'd be judging the
-  // roster from whatever stray subpages happened to respond.
-  if (!urls.some((u) => okUrls.includes(u)) || text.replace(/\s+/g, ' ').trim().length < MIN_PAGE_TEXT_LENGTH) {
-    throw new Error(errors.join('; ') || 'site returned no usable text');
+
+  const texts = [];
+  const okUrls = [];
+  for (const url of [...candidates].slice(0, MAX_CRAWL_PAGES)) {
+    try {
+      const text = htmlToText(await fetchHtml(url));
+      if (text.replace(/\s+/g, ' ').trim().length < MIN_PAGE_TEXT_LENGTH) {
+        errors.push(`${url}: page is nearly empty`);
+        continue;
+      }
+      texts.push(text);
+      okUrls.push(url);
+    } catch (err) {
+      errors.push(`${url}: ${err.message}`);
+    }
   }
-  return { text, urls: okUrls, links: [] };
+
+  if (!okUrls.length) {
+    throw new Error(`no roster page found${errors.length ? ` (${errors.join('; ')})` : ''}`);
+  }
+  return { text: texts.join('\n'), urls: okUrls, links: [...new Set(allLinks)] };
 }
 
 function nameVariants(cert) {
@@ -217,7 +221,7 @@ async function main() {
     if (EXTRA_SOURCES[j.journal]) {
       sources.set(j.journal, EXTRA_SOURCES[j.journal]);
     } else if ((j.website_url || '').trim()) {
-      sources.set(j.journal, { urls: editorialTeamUrls(j.website_url.trim()), crawl: false });
+      sources.set(j.journal, journalSource(j.website_url.trim()));
     }
   }
 
@@ -266,14 +270,14 @@ async function main() {
     const normalizedText = normalize(loaded.text);
     const compactText = normalizedText.replace(/ /g, '');
     const missing = holders.filter((c) => !isListed(c, normalizedText, compactText));
-    summary.checked_sources.push({ journal, url: loaded.urls[0], pages: loaded.urls.length, holders: holders.length, missing: missing.length });
+    summary.checked_sources.push({ journal, url: loaded.urls.join(' '), pages: loaded.urls.length, holders: holders.length, missing: missing.length });
 
     const toRow = (c) => ({
       certificate_id: c.certificate_id,
       display_name: c.display_name,
       role: c.role,
       journal: c.journal,
-      source: loaded.urls[0],
+      source: loaded.urls.join(' '),
     });
 
     if (
@@ -322,4 +326,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { normalize, htmlToText, sameSiteLinks, editorialTeamUrls, isListed };
+module.exports = { normalize, htmlToText, sameSiteLinks, journalSource, rosterLinks, isListed };
