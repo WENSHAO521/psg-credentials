@@ -45,6 +45,7 @@ jobs:
         env:
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
           DEBUG_DUMP: ${{ inputs.debug && '1' || '' }}
+          DEBUG_HTML: ${{ inputs.debug && '1' || '' }}
 
       - name: Validate and commit revocations
         if: steps.sync.outputs.revoked_count != '0'

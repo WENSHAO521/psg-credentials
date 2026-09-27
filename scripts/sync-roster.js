@@ -171,13 +171,21 @@ async function loadSourceText({ start, also, follow }) {
   const okUrls = [];
   for (const url of [...candidates].slice(0, MAX_CRAWL_PAGES)) {
     try {
-      const text = htmlToText(await fetchHtml(url));
+      const html = await fetchHtml(url);
+      const text = htmlToText(html);
       if (text.replace(/\s+/g, ' ').trim().length < MIN_PAGE_TEXT_LENGTH) {
         errors.push(`${url}: page is nearly empty`);
         continue;
       }
       texts.push(text);
       okUrls.push(url);
+      if (process.env.DEBUG_HTML) {
+        const body = html
+          .replace(/<(script|style|svg|nav|header|footer)[\s\S]*?<\/\1>/gi, ' ')
+          .replace(/<!--[\s\S]*?-->/g, ' ')
+          .replace(/\s+/g, ' ');
+        console.log(`  [html] ${url} ${body.slice(0, 40000)}`);
+      }
     } catch (err) {
       errors.push(`${url}: ${err.message}`);
     }
