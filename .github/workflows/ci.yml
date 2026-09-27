@@ -8,7 +8,7 @@ on:
       - 'source/journals.csv'
       - 'scripts/**'
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - 'source/certificates.csv'
       - 'source/editorial-boards.csv'
