@@ -74,6 +74,12 @@ function roleFromLabel(text) {
   return ROLE_LOOKUP.get(singularize(t)) || null;
 }
 
+// As it should print on a certificate: honorific kept ("Dr. Jiale Li"), degree
+// suffix dropped ("Hengjie Wang, M.A." -> "Hengjie Wang").
+function displayName(text) {
+  return text.replace(/\s+/g, ' ').trim().replace(DEGREE_SUFFIX, '').replace(/[,;:]+$/, '').trim();
+}
+
 function cleanName(text) {
   let t = text.replace(/\s+/g, ' ').trim();
   for (let i = 0; i < 2; i++) t = t.replace(TITLE_PREFIX, '');
@@ -119,9 +125,21 @@ const BOLD_STYLE = /font-weight:\s*(bold|[6-9]00)/i;
 // Flattens the page's main content into [{ kind: 'h'|'b'|'t', text }] in
 // document order: 'h' inside a heading, 'b' inside bold, 't' otherwise.
 function tokenize(html) {
-  const mainAt = html.search(/<main[\s>]/i);
-  let h = mainAt >= 0 ? html.slice(mainAt) : html;
-  h = h.replace(/<(script|style|svg|nav|footer)[\s\S]*?<\/\1>/gi, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
+  // Strip scripts *before* looking for <main>: the journal theme's <head>
+  // script builds page chrome from HTML strings (including "<main", and
+  // headings like "Submission Readiness"), which must never be read as page
+  // content. Then keep only <main>...</main> -- sidebars and widgets after it
+  // aren't the roster either.
+  let h = html
+    .replace(/<(script|style|svg|template|noscript)\b[\s\S]*?<\/\1\s*>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ');
+  const mainAt = h.search(/<main[\s>]/i);
+  if (mainAt >= 0) {
+    h = h.slice(mainAt);
+    const mainEnd = h.search(/<\/main\s*>/i);
+    if (mainEnd >= 0) h = h.slice(0, mainEnd);
+  }
+  h = h.replace(/<(nav|footer|aside)\b[\s\S]*?<\/\1\s*>/gi, ' ');
 
   const tokens = [];
   const stack = [];
@@ -200,7 +218,13 @@ function parseRoster(html, { defaultRole = '' } = {}) {
           break;
         }
       }
-      people.push({ role: oneShot || currentRole, name: cleanName(text), affiliation: affiliation || fallback, tokenIndex: i });
+      people.push({
+        role: oneShot || currentRole,
+        name: cleanName(text),
+        displayName: displayName(text),
+        affiliation: affiliation || fallback,
+        tokenIndex: i,
+      });
       oneShot = '';
       continue;
     }
@@ -224,7 +248,7 @@ function parseRoster(html, { defaultRole = '' } = {}) {
       seen.add(key);
       return true;
     })
-    .map(({ role, name, affiliation }) => ({ role, name, affiliation }));
+    .map(({ role, name, displayName: shown, affiliation }) => ({ role, name, displayName: shown, affiliation }));
 }
 
-module.exports = { parseRoster, roleFromLabel, looksLikeName, cleanName, tokenize };
+module.exports = { parseRoster, roleFromLabel, looksLikeName, cleanName, displayName, tokenize };

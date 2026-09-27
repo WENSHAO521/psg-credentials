@@ -9,9 +9,15 @@
 //      the certificate still verifies as "Revoked";
 //   2. restores certificates it revoked earlier (revoked_reason=roster) whose
 //      holder is listed again, e.g. after a page edit briefly dropped them;
-//   3. refreshes source/editorial-boards.csv from the pages;
-//   4. reports people listed without a certificate, and holders listed under
-//      a different role than their certificate says.
+//   3. issues certificates to people listed without one for their role
+//      (terms: scripts/lib/terms.js), unless staff revoked that role by hand;
+//   4. on a role change, revokes the old certificate (revoked_reason=
+//      reassigned) and issues one for the new role;
+//   5. renews certificates expiring within a week whose holder is still
+//      listed in the same role, the new term starting the day after;
+//   6. refreshes source/editorial-boards.csv from the pages.
+//
+// Steps 3-6 only use journals whose page parse was trustworthy this run.
 //
 // Deliberately conservative, because a wrong revocation is worse than a late
 // one:
@@ -29,7 +35,7 @@
 //     at instead (more likely a broken/moved page than a mass resignation)
 //
 // Usage:
-//   npm run sync-roster              # check, revoke/restore, refresh roster
+//   npm run sync-roster              # check and apply everything above
 //   DRY_RUN=1 npm run sync-roster    # check and report only, write nothing
 //
 // Run by .github/workflows/roster-sync.yml on a weekly schedule. Writes the
@@ -39,7 +45,9 @@ const fs = require('fs');
 const path = require('path');
 const Papa = require('papaparse');
 const { parseRoster, roleFromLabel } = require('./lib/rosterParse');
-const { compareRoster, isActiveAppointment } = require('./lib/rosterCompare');
+const { compareRoster, isActiveAppointment, personKey, sameRole } = require('./lib/rosterCompare');
+const { termEnd, addDays } = require('./lib/terms');
+const { fillIds } = require('./assign-ids');
 
 const CERTS_CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
 const ROSTER_CSV_PATH = path.join(__dirname, '..', 'source', 'editorial-boards.csv');
@@ -75,6 +83,13 @@ const MIN_MISSING_FOR_RATIO_GUARD = 3;
 const MIN_PAGE_TEXT_LENGTH = 200;
 const MAX_CRAWL_PAGES = 25;
 const FETCH_TIMEOUT_MS = 30000;
+// The sites sit behind bot protection that answers bursts with 403/429;
+// pace requests and retry those (and 5xx / network errors) a couple of times.
+const FETCH_RETRY_DELAYS_MS = [5000, 20000];
+const FETCH_PACING_MS = Number(process.env.ROSTER_FETCH_PACING_MS ?? 750);
+// Renew a certificate that expires within this many days (one run's gap)
+// if its holder is still listed in the same role.
+const RENEW_WINDOW_DAYS = 7;
 const USER_AGENT = 'psg-credentials-roster-sync (+https://github.com/wenshao521/psg-credentials)';
 
 function today() {
@@ -143,14 +158,33 @@ function sameSiteLinks(html, pageUrl) {
   return [...links];
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function fetchHtml(url) {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT, Accept: 'text/html' },
-    redirect: 'follow',
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
+  for (let attempt = 0; ; attempt++) {
+    await sleep(FETCH_PACING_MS);
+    let res;
+    try {
+      res = await fetch(url, {
+        headers: { 'User-Agent': USER_AGENT, Accept: 'text/html' },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
+    } catch (err) {
+      if (attempt < FETCH_RETRY_DELAYS_MS.length) {
+        await sleep(FETCH_RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
+      throw err;
+    }
+    if (res.ok) return res.text();
+    const retryable = res.status === 403 || res.status === 429 || res.status >= 500;
+    if (retryable && attempt < FETCH_RETRY_DELAYS_MS.length) {
+      await sleep(FETCH_RETRY_DELAYS_MS[attempt]);
+      continue;
+    }
+    throw new Error(`HTTP ${res.status}`);
+  }
 }
 
 // journals.csv holds the journal's home URL (in one case its editorialTeam
@@ -285,8 +319,10 @@ async function main() {
     revoked: [],
     restored: [],
     held_back: [],
-    missing_certificates: [],
-    role_mismatches: [],
+    issued: [],
+    replaced: [],
+    renewed: [],
+    not_issued: [],
     roster_not_updated: [],
     unreachable: [],
     no_source: [],
@@ -380,7 +416,10 @@ async function main() {
     const covered = listed.filter((c) => parsedKeys.has(normalize(c.name)) || parsedKeys.has(normalize(c.display_name)));
     const coverage = listed.length ? covered.length / listed.length : loaded.people.length ? 1 : 0;
     if (!massDisappearance && coverage >= MIN_PARSE_COVERAGE) {
-      liveRoster.set(journal, loaded.people.map((p) => ({ journal, role: p.role, name: p.name, affiliation: p.affiliation })));
+      liveRoster.set(
+        journal,
+        loaded.people.map((p) => ({ journal, role: p.role, name: p.name, displayName: p.displayName, affiliation: p.affiliation }))
+      );
     } else {
       summary.roster_not_updated.push({
         journal,
@@ -407,22 +446,101 @@ async function main() {
     Papa.unparse(merged, { columns: rosterParsed.meta.fields }) !== Papa.unparse(rosterRows, { columns: rosterParsed.meta.fields });
   rosterRows = merged;
 
-  // Gaps between the live roster and the (post-revocation) certificates --
-  // only for journals read reliably this run, so stale rows elsewhere don't
-  // produce noise.
+  // Issuing: everyone on a reliably-read roster should hold an active
+  // certificate for each role they're listed under.
+  const journalType = new Map(journals.map((j) => [j.journal, (j.type || '').trim()]));
+  const newCerts = [];
+  const issue = (row, validFrom) => {
+    const cert = {};
+    for (const f of certsParsed.meta.fields) cert[f] = '';
+    Object.assign(cert, {
+      name: row.name,
+      display_name: row.displayName || row.name,
+      journal: row.journal,
+      role: row.role,
+      issue_date: now,
+      valid_from: validFrom,
+      valid_until: termEnd(validFrom, journalType.get(row.journal), row.role),
+      status: 'active',
+      cert_type: 'appointment',
+    });
+    certs.push(cert);
+    newCerts.push(cert);
+    return cert;
+  };
+  // A certificate staff revoked by hand (any reason but roster/reassigned)
+  // blocks re-issuing that same role while the revoked row is still in the
+  // registry (its 30-day grace period) -- otherwise a manual revocation of
+  // someone still listed on the site would be undone the next week.
+  const manuallyRevoked = (row) =>
+    certs.some(
+      (c) =>
+        c.status === 'revoked' &&
+        !['roster', 'reassigned'].includes(c.revoked_reason) &&
+        personKey(c.journal, c.name) === personKey(row.journal, row.name) &&
+        sameRole(row.role, c.role)
+    );
+
   const liveRows = [...liveRoster.values()].flat();
   const activeNow = certs.filter((c) => isActiveAppointment(c, now) && liveRoster.has(c.journal));
   const { missing: noCert, roleMismatches } = compareRoster(liveRows, activeNow);
-  summary.missing_certificates = noCert.map((r) => ({ name: r.name, role: r.role || '(not stated)', journal: r.journal, affiliation: r.affiliation }));
-  summary.role_mismatches = roleMismatches.map(({ roster, cert }) => ({
-    certificate_id: cert.certificate_id,
-    display_name: cert.display_name,
-    journal: cert.journal,
-    certificate_role: cert.role,
-    page_role: roster.role,
-  }));
+  const pending = []; // [row, kind, extra]
 
-  const certsChanged = summary.revoked.length + summary.restored.length > 0;
+  // Role changed on the site: retire the old certificate, issue the new role.
+  for (const { roster: row, cert } of roleMismatches) {
+    if (manuallyRevoked(row)) {
+      summary.not_issued.push({ name: row.name, role: row.role, journal: row.journal, reason: 'a certificate for this role was revoked by hand' });
+      continue;
+    }
+    console.log(`    role changed: ${cert.display_name} ${cert.role} -> ${row.role} (${cert.certificate_id})`);
+    cert.status = 'revoked';
+    cert.revoked_at = now;
+    cert.revoked_reason = 'reassigned';
+    pending.push([row, 'replaced', { old_certificate_id: cert.certificate_id, old_role: cert.role }]);
+  }
+
+  // Listed without any certificate for that role: issue one.
+  for (const row of noCert) {
+    if (!row.role) {
+      summary.not_issued.push({ name: row.name, role: '', journal: row.journal, reason: 'role not stated on the page' });
+      continue;
+    }
+    if (manuallyRevoked(row)) {
+      summary.not_issued.push({ name: row.name, role: row.role, journal: row.journal, reason: 'a certificate for this role was revoked by hand' });
+      continue;
+    }
+    pending.push([row, 'issued', {}]);
+  }
+
+  // Expiring soon and still listed in the same role: renew seamlessly, the new
+  // term starting the day after the old one ends.
+  for (const c of activeNow) {
+    if (!c.valid_until || c.valid_until > addDays(now, RENEW_WINDOW_DAYS)) continue;
+    const row = liveRows.find((r) => personKey(r.journal, r.name) === personKey(c.journal, c.name) && r.role && sameRole(r.role, c.role));
+    if (!row) continue;
+    const newer = certs.some(
+      (o) => o !== c && o.status === 'active' && personKey(o.journal, o.name) === personKey(c.journal, c.name) &&
+        sameRole(o.role, c.role) && o.valid_until > c.valid_until
+    );
+    if (newer) continue;
+    pending.push([{ ...row, role: c.role }, 'renewed', { old_certificate_id: c.certificate_id, validFrom: addDays(c.valid_until, 1) }]);
+  }
+
+  for (const [row, kind, extra] of pending) {
+    const cert = issue(row, extra.validFrom || now);
+    extra.cert = cert;
+  }
+  fillIds(certs);
+  for (const [row, kind, extra] of pending) {
+    const c = extra.cert;
+    const out = { certificate_id: c.certificate_id, display_name: c.display_name, role: c.role, journal: c.journal, term: `${c.valid_from} to ${c.valid_until}` };
+    if (kind === 'issued') summary.issued.push({ ...out, affiliation: row.affiliation });
+    if (kind === 'replaced') summary.replaced.push({ ...out, old_certificate_id: extra.old_certificate_id, old_role: extra.old_role });
+    if (kind === 'renewed') summary.renewed.push({ ...out, old_certificate_id: extra.old_certificate_id });
+    console.log(`    ${kind}: ${c.display_name} — ${c.role} — ${c.journal} (${c.certificate_id}, ${out.term})`);
+  }
+
+  const certsChanged = summary.revoked.length + summary.restored.length + newCerts.length + summary.replaced.length > 0;
   if (!dryRun && certsChanged) writeCsv(CERTS_CSV_PATH, certs, certsParsed.meta.fields);
   if (!dryRun && rosterChanged) writeCsv(ROSTER_CSV_PATH, rosterRows, rosterParsed.meta.fields);
 
@@ -430,9 +548,9 @@ async function main() {
   fs.writeFileSync(SUMMARY_PATH, JSON.stringify(summary, null, 2) + '\n', 'utf8');
 
   console.log(
-    `\n${dryRun ? '[dry run] ' : ''}Revoked ${summary.revoked.length}, restored ${summary.restored.length}. ` +
-      `${summary.held_back.length} held back, ${summary.unreachable.length} source(s) unreachable. ` +
-      `${summary.missing_certificates.length} listed without a certificate, ${summary.role_mismatches.length} role mismatch(es). ` +
+    `\n${dryRun ? '[dry run] ' : ''}Revoked ${summary.revoked.length}, restored ${summary.restored.length}, ` +
+      `issued ${summary.issued.length}, replaced ${summary.replaced.length}, renewed ${summary.renewed.length}. ` +
+      `${summary.held_back.length} held back, ${summary.not_issued.length} not issued, ${summary.unreachable.length} source(s) unreachable. ` +
       `editorial-boards.csv ${rosterChanged ? 'updated' : 'unchanged'}.`
   );
 
@@ -441,6 +559,7 @@ async function main() {
     fs.appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\n`);
     fs.appendFileSync(process.env.GITHUB_OUTPUT, `revoked_count=${dryRun ? 0 : summary.revoked.length}\n`);
     fs.appendFileSync(process.env.GITHUB_OUTPUT, `restored_count=${dryRun ? 0 : summary.restored.length}\n`);
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `issued_count=${dryRun ? 0 : newCerts.length}\n`);
   }
 }
 

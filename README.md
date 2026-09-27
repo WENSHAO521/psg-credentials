@@ -11,7 +11,7 @@ Cloudflare Pages serves the static site.
 3. `npm run validate` — sanity-checks the CSV
 4. Commit and open a PR (CI re-runs validation)
 
-## Automatic roster sync (weekly)
+## Automatic issuing and revocation (weekly roster sync)
 
 `.github/workflows/roster-sync.yml` runs every Monday (and on demand from the
 Actions tab, with optional dry-run and debug switches). It reads each
@@ -23,9 +23,17 @@ links, and the Research Institute's `/people/...` pages, then:
   30 days, then the lifecycle workflow removes it;
 - **restores** such a certificate automatically if the name reappears within
   those 30 days;
-- **refreshes** `source/editorial-boards.csv` from the pages;
-- **reports** people listed on a site without a certificate, and holders whose
-  role on the site differs from their certificate.
+- **issues** a certificate to anyone listed without one for their role —
+  journals 3 years; Research Institute: Research Fellow 3 years, Visiting
+  Scholar 6 months, other roles 1 year (`scripts/lib/terms.js`);
+- **replaces** the certificate when someone's role on the site changes (old
+  one revoked as `reassigned`, new one issued);
+- **renews** certificates expiring within a week if the holder is still listed;
+- **refreshes** `source/editorial-boards.csv` from the pages.
+
+A certificate revoked by hand (`npm run revoke-certificate`) isn't re-issued
+while its record is still in the registry (30 days); to stop it for good,
+take the person off the website.
 
 Results go to the "Certificate Registry: Roster Sync Report" issue. Safety
 guards: an unreachable page is skipped, and if more than half of a journal's

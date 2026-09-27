@@ -44,16 +44,10 @@ function journalCodeFor(journalCodes, journal) {
   return code;
 }
 
-function main() {
-  const raw = fs.readFileSync(CSV_PATH, 'utf8');
-  const parsed = Papa.parse(raw, { header: true, skipEmptyLines: true });
-  if (parsed.errors.length) {
-    console.error('CSV parse errors:', parsed.errors);
-    process.exit(1);
-  }
-  const rows = parsed.data;
-  const journalCodes = loadJournalCodes();
-
+// Fills in certificate_id / token on every row missing one, in place.
+// Returns how many values were assigned. Also used by sync-roster.js for the
+// certificates it issues.
+function fillIds(rows, journalCodes = loadJournalCodes()) {
   const maxSeqByJournalYear = {};
   for (const row of rows) {
     const id = (row.certificate_id || '').trim();
@@ -96,6 +90,18 @@ function main() {
       assigned++;
     }
   }
+  return assigned;
+}
+
+function main() {
+  const raw = fs.readFileSync(CSV_PATH, 'utf8');
+  const parsed = Papa.parse(raw, { header: true, skipEmptyLines: true });
+  if (parsed.errors.length) {
+    console.error('CSV parse errors:', parsed.errors);
+    process.exit(1);
+  }
+  const rows = parsed.data;
+  const assigned = fillIds(rows);
 
   if (assigned === 0) {
     console.log('Nothing to assign, CSV already complete.');
@@ -108,4 +114,6 @@ function main() {
   console.log(`Assigned ${assigned} value(s). CSV updated: ${CSV_PATH}`);
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = { fillIds };
