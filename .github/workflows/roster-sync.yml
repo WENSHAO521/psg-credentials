@@ -13,6 +13,10 @@ on:
         description: 'Report only, do not revoke anything'
         type: boolean
         default: false
+      debug:
+        description: 'Print the fetched page text and links in the log'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -40,6 +44,7 @@ jobs:
         run: node scripts/sync-roster.js
         env:
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+          DEBUG_DUMP: ${{ inputs.debug && '1' || '' }}
 
       - name: Validate and commit revocations
         if: steps.sync.outputs.revoked_count != '0'

@@ -141,8 +141,11 @@ async function loadSourceText({ urls, crawl }) {
     // Candidates are alternatives: first one that yields a real page wins.
     for (const url of urls) {
       try {
-        const text = htmlToText(await fetchHtml(url));
-        if (text.replace(/\s+/g, ' ').trim().length >= MIN_PAGE_TEXT_LENGTH) return { text, urls: [url] };
+        const html = await fetchHtml(url);
+        const text = htmlToText(html);
+        if (text.replace(/\s+/g, ' ').trim().length >= MIN_PAGE_TEXT_LENGTH) {
+          return { text, urls: [url], links: sameSiteLinks(html, url) };
+        }
         errors.push(`${url}: page is nearly empty`);
       } catch (err) {
         errors.push(`${url}: ${err.message}`);
@@ -179,7 +182,7 @@ async function loadSourceText({ urls, crawl }) {
   if (!urls.some((u) => okUrls.includes(u)) || text.replace(/\s+/g, ' ').trim().length < MIN_PAGE_TEXT_LENGTH) {
     throw new Error(errors.join('; ') || 'site returned no usable text');
   }
-  return { text, urls: okUrls };
+  return { text, urls: okUrls, links: [] };
 }
 
 function nameVariants(cert) {
@@ -252,6 +255,12 @@ async function main() {
       summary.unreachable.push({ journal, holders: holders.length, error: err.message });
       console.log(`- ${journal}: could not read roster, skipped -- ${err.message}`);
       continue;
+    }
+
+    if (process.env.DEBUG_DUMP) {
+      console.log(`  [debug] ${journal}: pages read: ${loaded.urls.join(', ')}`);
+      console.log(`  [debug] text: ${loaded.text.replace(/\s+/g, ' ').trim().slice(0, 2500)}`);
+      for (const l of loaded.links || []) console.log(`  [debug] link: ${l}`);
     }
 
     const normalizedText = normalize(loaded.text);
