@@ -5,26 +5,24 @@
 // Usage: node scripts/probe-site.js <url> [<url> ...]
 // (Also runnable from the Actions tab: "Site probe" workflow.)
 const { tokenize } = require('./lib/rosterParse');
-const { sameSiteLinks } = require('./sync-roster');
+const { sameSiteLinks, fetchHtml } = require('./sync-roster');
 
 async function main() {
   for (const url of process.argv.slice(2)) {
     console.log(`\n===== ${url}`);
-    let res;
+    let html;
     try {
-      res = await fetch(url, { headers: { Accept: 'text/html' }, redirect: 'follow', signal: AbortSignal.timeout(30000) });
+      // Same request (User-Agent, pacing, retries) as the sync itself -- the
+      // sites' bot protection answers bare requests with 403.
+      html = await fetchHtml(url);
     } catch (err) {
-      console.log(`  fetch failed: ${err.message}`);
+      console.log(`  failed: ${err.message}`);
       continue;
     }
-    console.log(`  HTTP ${res.status} ${res.url !== url ? `(redirected to ${res.url})` : ''}`);
-    if (!res.ok) continue;
-    const html = await res.text();
     for (const { kind, text } of tokenize(html)) console.log(`  ${kind} | ${text.slice(0, 200)}`);
-    for (const link of sameSiteLinks(html, res.url)) {
+    for (const link of sameSiteLinks(html, url)) {
       if (!/%7B|\$\{/.test(link)) console.log(`  link: ${link}`);
     }
-    await new Promise((r) => setTimeout(r, 1000));
   }
 }
 

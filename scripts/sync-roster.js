@@ -572,4 +572,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { normalize, htmlToText, sameSiteLinks, journalSource, rosterLinks, isListed, loadSource };
+module.exports = { normalize, htmlToText, sameSiteLinks, journalSource, rosterLinks, isListed, loadSource, fetchHtml };
