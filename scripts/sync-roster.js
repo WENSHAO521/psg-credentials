@@ -189,12 +189,17 @@ async function fetchHtml(url) {
   }
 }
 
-// journals.csv holds the journal's home URL (in one case its editorialTeam
-// URL). Besides whatever the homepage links to, always try the stock OJS
-// path too.
+// Every journal's board is standardising on <home>/editorial-board, so that's
+// always read, linked from the homepage or not. Until every journal has moved
+// there, whatever board page the homepage links to and the stock OJS
+// about/editorialTeam are read too (all found pages count as one roster).
 function journalSource(websiteUrl) {
   const home = websiteUrl.replace(/\/+$/, '').replace(/\/(about\/)?editorialTeam$/i, '');
-  return { start: [home], also: [`${home}/about/editorialTeam`], follow: JOURNAL_ROSTER_LINK };
+  return {
+    start: [home],
+    also: [`${home}/editorial-board`, `${home}/about/editorialTeam`],
+    follow: JOURNAL_ROSTER_LINK,
+  };
 }
 
 function rosterLinks(links, follow) {

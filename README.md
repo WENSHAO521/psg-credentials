@@ -15,8 +15,10 @@ Cloudflare Pages serves the static site.
 
 `.github/workflows/roster-sync.yml` runs every Monday (and on demand from the
 Actions tab, with optional dry-run and debug switches). It reads each
-journal's editorial board page(s), found through the journal homepage's own
-links, and the Research Institute's `/people/...` pages, then:
+journal's editorial board at `journals.panorama-sg.com/<abbreviation>/editorial-board`
+(the standard address for every journal; any other board page the journal
+homepage links to is read as well during the switch-over), and the Research
+Institute's `/people/...` pages, then:
 
 - **revokes** any active appointment certificate whose holder is no longer
   listed (`revoked_reason` = `roster`). It stays verifiable as "Revoked" for
