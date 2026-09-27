@@ -176,6 +176,7 @@ async function main() {
       token: '',
       status: 'active',
       revoked_at: '',
+      revoked_reason: '',
     });
     const fields = parsed.meta.fields;
     fs.writeFileSync(CSV_PATH, Papa.unparse(parsed.data, { columns: fields, newline: '\n' }) + '\n', 'utf8');

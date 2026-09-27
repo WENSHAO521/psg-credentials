@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const Papa = require('papaparse');
 const { ROLE_CODES } = require('./lib/roleCodes');
+const { REVOKED_REASONS } = require('./lib/revokedReasons');
 
 const CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
 const REQUIRED_FIELDS = [
@@ -82,6 +83,15 @@ function main() {
       }
     } else if (revokedAt) {
       errors.push(`${line}: revoked_at is set but status is not "revoked"`);
+    }
+
+    const revokedReason = (row.revoked_reason || '').trim();
+    if (revokedReason) {
+      if (!REVOKED_REASONS[revokedReason]) {
+        errors.push(`${line}: revoked_reason "${revokedReason}" must be one of ${Object.keys(REVOKED_REASONS).join('/')} (or blank)`);
+      } else if (row.status !== 'revoked') {
+        errors.push(`${line}: revoked_reason is set but status is not "revoked"`);
+      }
     }
 
     const id = (row.certificate_id || '').trim();

@@ -1,12 +1,12 @@
 name: Roster sync
 
-# Monthly: check every active appointment certificate against the live
+# Weekly (Mondays): check every active appointment certificate against the live
 # editorial-team pages of the journals (journals.panorama-sg.com) and the
 # Research Institute site (research.panorama-sg.com), and revoke certificates
 # whose holders are no longer listed. See scripts/sync-roster.js.
 on:
   schedule:
-    - cron: '17 2 1 * *'
+    - cron: '17 2 * * 1'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -32,11 +32,11 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
 
       - run: npm install --omit=dev papaparse
 
@@ -60,7 +60,7 @@ jobs:
 
       - name: Report to tracking issue
         if: always() && hashFiles('roster-sync-summary.json') != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');

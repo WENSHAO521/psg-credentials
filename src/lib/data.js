@@ -52,6 +52,15 @@ export async function findById(certificateId) {
   return records.find((r) => r.certificate_id.toLowerCase() === q) || null;
 }
 
+// Public explanation for each revoked_reason code (see
+// scripts/lib/revokedReasons.js -- keep the two lists in sync).
+export const REVOKED_REASON_TEXT = {
+  roster: "The holder is no longer listed on the current editorial board or member roster.",
+  resigned: "The holder has stepped down from this role.",
+  reassigned: "The holder has moved to a different role; a new certificate replaces this one.",
+  error: "This credential was issued in error.",
+};
+
 export function certificateStatus(record) {
   if (!record) return "not_found";
   if (record.status === "revoked") return "revoked";

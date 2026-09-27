@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { IconArrowRight } from "@tabler/icons-react";
-import { findById, certificateStatus } from "../lib/data.js";
+import { findById, certificateStatus, REVOKED_REASON_TEXT } from "../lib/data.js";
 import { extractWatermarkFromImageFile, extractWatermarkFromPdfFile } from "../lib/watermark.js";
 import StatusBadge from "../components/StatusBadge.jsx";
 import DocumentCard from "../components/DocumentCard.jsx";
@@ -221,6 +221,12 @@ export default function VerifyPage() {
                       ? "This credential has been revoked and is no longer valid."
                       : `This credential's term ended on ${outcome.record.valid_until}.`}
                   </p>
+                  {outcome.variant === "revoked" &&
+                    REVOKED_REASON_TEXT[outcome.record.revoked_reason] && (
+                      <p className="text-sm text-steel mt-1">
+                        {REVOKED_REASON_TEXT[outcome.record.revoked_reason]}
+                      </p>
+                    )}
                 </div>
               )}
 
