@@ -1,0 +1,27 @@
+name: Site probe
+
+# On-demand debugging aid for the roster sync: prints what the given pages
+# look like to the parser. Changes nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: 'Space-separated URLs to fetch'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm install --omit=dev papaparse
+      - run: node scripts/probe-site.js $URLS
+        env:
+          URLS: ${{ inputs.urls }}
