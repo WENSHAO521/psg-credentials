@@ -1,0 +1,117 @@
+name: Roster sync
+
+# Monthly: check every active appointment certificate against the live
+# editorial-team pages of the journals (journals.panorama-sg.com) and the
+# Research Institute site (research.panorama-sg.com), and revoke certificates
+# whose holders are no longer listed. See scripts/sync-roster.js.
+on:
+  schedule:
+    - cron: '17 2 1 * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report only, do not revoke anything'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+# Shares a group with the lifecycle workflow so the two never push to
+# certificates.csv at the same time.
+concurrency:
+  group: certificate-lifecycle
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install --omit=dev papaparse
+
+      - id: sync
+        run: node scripts/sync-roster.js
+        env:
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+
+      - name: Validate and commit revocations
+        if: steps.sync.outputs.revoked_count != '0'
+        run: |
+          node scripts/validate-data.js
+          git config user.name "psg-credentials-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add source/certificates.csv
+          git commit -m "Revoke ${{ steps.sync.outputs.revoked_count }} certificate(s) no longer on the live member rosters"
+          git pull --rebase
+          git push
+
+      - name: Report to tracking issue
+        if: always() && hashFiles('roster-sync-summary.json') != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const s = JSON.parse(fs.readFileSync('roster-sync-summary.json', 'utf8'));
+
+            function table(rows, cols) {
+              if (!rows.length) return '_None._';
+              const esc = (v) => String(v ?? '').replace(/\|/g, '\\|');
+              const header = `| ${cols.join(' | ')} |`;
+              const sep = `| ${cols.map(() => '---').join(' | ')} |`;
+              const body = rows.map((r) => `| ${cols.map((c) => esc(r[c])).join(' | ')} |`).join('\n');
+              return [header, sep, body].join('\n');
+            }
+
+            const body = [
+              `Last checked: ${s.checked_on}${s.dry_run ? ' (dry run -- nothing was revoked)' : ''}`,
+              '',
+              `### ${s.dry_run ? 'Would be revoked' : 'Revoked this run'} (${s.revoked.length})`,
+              'No longer listed on the live roster. Each stays verifiable as "Revoked" for 30 days before the lifecycle workflow removes it. If one is a mistake (e.g. a name spelled differently on the website), set `status` back to `active` and clear `revoked_at` in `source/certificates.csv`.',
+              '',
+              table(s.revoked, ['certificate_id', 'display_name', 'role', 'journal', 'source']),
+              '',
+              `### Held back for review (${s.held_back.length})`,
+              'More than half of a journal\'s holders vanished at once, which usually means the page moved or broke rather than a mass departure, so nothing was revoked. Check the page; revoke by hand with `npm run revoke-certificate` if they really left.',
+              '',
+              table(s.held_back, ['certificate_id', 'display_name', 'role', 'journal', 'source']),
+              '',
+              `### Could not read (${s.unreachable.length})`,
+              table(s.unreachable, ['journal', 'holders', 'error']),
+              '',
+              `### No website configured (${s.no_source.length})`,
+              table(s.no_source, ['journal', 'holders']),
+              '',
+              `<details><summary>Sources checked (${s.checked_sources.length})</summary>\n\n${table(s.checked_sources, ['journal', 'url', 'pages', 'holders', 'missing'])}\n</details>`,
+            ].join('\n');
+
+            const title = 'Certificate Registry: Roster Sync Report';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'roster-sync-report',
+            });
+            const existing = issues.find((i) => i.title === title);
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['roster-sync-report'],
+              });
+            }

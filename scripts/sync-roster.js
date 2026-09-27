@@ -1,0 +1,316 @@
+// Monthly roster check against the live websites: for every journal in
+// source/journals.csv (its OJS editorialTeam page) and for the Panorama
+// Research Institute (research.panorama-sg.com), fetches the public member
+// page(s) and checks that each active appointment certificate holder is still
+// listed there. Anyone no longer listed has their certificate revoked
+// automatically (status=revoked, revoked_at=today), which starts the usual
+// 30-day grace period in scripts/prune-expired.js -- during that window the
+// certificate still verifies as "Revoked", and staff can undo a mistake by
+// setting it back to active.
+//
+// Deliberately conservative, because a wrong revocation is worse than a late
+// one:
+//   - only appointment certificates are checked (paper awards / conference
+//     invitations aren't tied to board membership)
+//   - matching is "does this person's name appear anywhere on the page", not
+//     a parse of the page layout, so a theme change doesn't look like the
+//     whole board left
+//   - a source that can't be fetched, or returns a near-empty page, is
+//     skipped (never treated as "everyone left")
+//   - if more than MAX_MISSING_RATIO of a source's holders vanish at once,
+//     nothing is revoked for that source -- it's reported for a human to look
+//     at instead (more likely a broken/moved page than a mass resignation)
+//
+// Usage:
+//   npm run sync-roster              # check and revoke
+//   DRY_RUN=1 npm run sync-roster    # check and report only, write nothing
+//
+// Run by .github/workflows/roster-sync.yml on a monthly schedule. Writes the
+// updated CSV in place and a roster-sync-summary.json for the workflow to turn
+// into an Issue.
+const fs = require('fs');
+const path = require('path');
+const Papa = require('papaparse');
+
+const CERTS_CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
+const JOURNALS_CSV_PATH = path.join(__dirname, '..', 'source', 'journals.csv');
+const SUMMARY_PATH = path.join(__dirname, '..', 'roster-sync-summary.json');
+
+// Sources that aren't an OJS journal: the page(s) to read, and whether to
+// also follow same-site links from them (the institute site's member listing
+// isn't at a fixed OJS path, so we read the whole small site).
+const EXTRA_SOURCES = {
+  'Panorama Research Institute': { urls: ['https://research.panorama-sg.com/'], crawl: true },
+};
+
+const MAX_MISSING_RATIO = 0.5;
+const MIN_MISSING_FOR_RATIO_GUARD = 3;
+const MIN_PAGE_TEXT_LENGTH = 200;
+const MAX_CRAWL_PAGES = 40;
+const FETCH_TIMEOUT_MS = 30000;
+const USER_AGENT = 'psg-credentials-roster-sync (+https://github.com/wenshao521/psg-credentials)';
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function loadCsv(csvPath) {
+  const raw = fs.readFileSync(csvPath, 'utf8');
+  const parsed = Papa.parse(raw, { header: true, skipEmptyLines: true });
+  if (parsed.errors.length) {
+    console.error(`${csvPath} parse errors:`, parsed.errors);
+    process.exit(1);
+  }
+  return parsed;
+}
+
+// Lowercase, strip accents/titles-agnostic punctuation, collapse whitespace --
+// applied identically to page text and to names so "Dr. José  Li-Wei" on the
+// page matches "Jose Li Wei" in the CSV.
+function normalize(s) {
+  return ` ${(s || '')
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()} `;
+}
+
+function decodeEntities(s) {
+  return s
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)));
+}
+
+function htmlToText(html) {
+  return decodeEntities(
+    html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/<[^>]+>/g, ' ')
+  );
+}
+
+function sameSiteLinks(html, pageUrl) {
+  const base = new URL(pageUrl);
+  const links = new Set();
+  for (const m of html.matchAll(/href\s*=\s*["']([^"'#]+)/gi)) {
+    let u;
+    try {
+      u = new URL(decodeEntities(m[1]), base);
+    } catch {
+      continue;
+    }
+    if (u.host !== base.host || !/^https?:$/.test(u.protocol)) continue;
+    if (/\.(pdf|jpe?g|png|gif|svg|webp|zip|docx?|xlsx?|css|js|ico|mp4)$/i.test(u.pathname)) continue;
+    u.hash = '';
+    links.add(u.toString());
+  }
+  return [...links];
+}
+
+async function fetchHtml(url) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': USER_AGENT, Accept: 'text/html' },
+    redirect: 'follow',
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
+
+// OJS serves the board at <journal>/about/editorialTeam; journals.csv holds the
+// journal's home URL (and in one case already the editorialTeam URL).
+function editorialTeamUrls(websiteUrl) {
+  const base = websiteUrl.replace(/\/+$/, '').replace(/\/(about\/)?editorialTeam$/i, '');
+  return [...new Set([`${base}/about/editorialTeam`, websiteUrl])];
+}
+
+// Returns { text, urls } for a source, or throws if nothing usable came back.
+async function loadSourceText({ urls, crawl }) {
+  const errors = [];
+
+  if (!crawl) {
+    // Candidates are alternatives: first one that yields a real page wins.
+    for (const url of urls) {
+      try {
+        const text = htmlToText(await fetchHtml(url));
+        if (text.replace(/\s+/g, ' ').trim().length >= MIN_PAGE_TEXT_LENGTH) return { text, urls: [url] };
+        errors.push(`${url}: page is nearly empty`);
+      } catch (err) {
+        errors.push(`${url}: ${err.message}`);
+      }
+    }
+    throw new Error(errors.join('; '));
+  }
+
+  // Crawl: read the start page(s) plus every same-site page they link to
+  // (one level deep), and treat the combined text as the roster.
+  const queue = [...urls];
+  const seen = new Set();
+  const texts = [];
+  const okUrls = [];
+  let depth0 = urls.length;
+  while (queue.length && seen.size < MAX_CRAWL_PAGES) {
+    const url = queue.shift();
+    if (seen.has(url)) continue;
+    seen.add(url);
+    const isStart = depth0 > 0;
+    depth0 -= 1;
+    try {
+      const html = await fetchHtml(url);
+      texts.push(htmlToText(html));
+      okUrls.push(url);
+      if (isStart) queue.push(...sameSiteLinks(html, url));
+    } catch (err) {
+      errors.push(`${url}: ${err.message}`);
+    }
+  }
+  const text = texts.join('\n');
+  // The start page itself must have loaded; otherwise we'd be judging the
+  // roster from whatever stray subpages happened to respond.
+  if (!urls.some((u) => okUrls.includes(u)) || text.replace(/\s+/g, ' ').trim().length < MIN_PAGE_TEXT_LENGTH) {
+    throw new Error(errors.join('; ') || 'site returned no usable text');
+  }
+  return { text, urls: okUrls };
+}
+
+function nameVariants(cert) {
+  const variants = new Set();
+  for (const raw of [cert.name, cert.display_name]) {
+    const n = normalize(raw).trim();
+    if (!n) continue;
+    variants.add(n);
+    const parts = n.split(' ');
+    // Chinese names are often written family-name-first ("Li Jiale").
+    if (parts.length === 2) variants.add(`${parts[1]} ${parts[0]}`);
+  }
+  return [...variants];
+}
+
+function isListed(cert, normalizedText, compactText) {
+  return nameVariants(cert).some(
+    (v) => normalizedText.includes(` ${v} `) || compactText.includes(v.replace(/ /g, ''))
+  );
+}
+
+async function main() {
+  const dryRun = Boolean(process.env.DRY_RUN && process.env.DRY_RUN !== '0' && process.env.DRY_RUN !== 'false');
+  const now = today();
+
+  const journals = loadCsv(JOURNALS_CSV_PATH).data;
+  const certsParsed = loadCsv(CERTS_CSV_PATH);
+  const certs = certsParsed.data;
+
+  const sources = new Map();
+  for (const j of journals) {
+    if (EXTRA_SOURCES[j.journal]) {
+      sources.set(j.journal, EXTRA_SOURCES[j.journal]);
+    } else if ((j.website_url || '').trim()) {
+      sources.set(j.journal, { urls: editorialTeamUrls(j.website_url.trim()), crawl: false });
+    }
+  }
+
+  const active = certs.filter(
+    (c) => c.status === 'active' && (!c.cert_type || c.cert_type === 'appointment') && (!c.valid_until || c.valid_until >= now)
+  );
+  const byJournal = new Map();
+  for (const c of active) {
+    if (!byJournal.has(c.journal)) byJournal.set(c.journal, []);
+    byJournal.get(c.journal).push(c);
+  }
+
+  const summary = {
+    checked_on: now,
+    dry_run: dryRun,
+    revoked: [],
+    held_back: [],
+    unreachable: [],
+    no_source: [],
+    checked_sources: [],
+  };
+
+  for (const [journal, holders] of [...byJournal.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    const source = sources.get(journal);
+    if (!source) {
+      summary.no_source.push({ journal, holders: holders.length });
+      console.log(`- ${journal}: no website_url in journals.csv, skipped (${holders.length} holder(s))`);
+      continue;
+    }
+
+    let loaded;
+    try {
+      loaded = await loadSourceText(source);
+    } catch (err) {
+      summary.unreachable.push({ journal, holders: holders.length, error: err.message });
+      console.log(`- ${journal}: could not read roster, skipped -- ${err.message}`);
+      continue;
+    }
+
+    const normalizedText = normalize(loaded.text);
+    const compactText = normalizedText.replace(/ /g, '');
+    const missing = holders.filter((c) => !isListed(c, normalizedText, compactText));
+    summary.checked_sources.push({ journal, url: loaded.urls[0], pages: loaded.urls.length, holders: holders.length, missing: missing.length });
+
+    const toRow = (c) => ({
+      certificate_id: c.certificate_id,
+      display_name: c.display_name,
+      role: c.role,
+      journal: c.journal,
+      source: loaded.urls[0],
+    });
+
+    if (
+      missing.length >= MIN_MISSING_FOR_RATIO_GUARD &&
+      missing.length / holders.length > MAX_MISSING_RATIO
+    ) {
+      summary.held_back.push(...missing.map(toRow));
+      console.log(
+        `- ${journal}: ${missing.length}/${holders.length} holder(s) not found -- too many at once, NOT revoking (check the page)`
+      );
+      continue;
+    }
+
+    console.log(`- ${journal}: ${holders.length - missing.length}/${holders.length} holder(s) still listed`);
+    for (const c of missing) {
+      console.log(`    not listed: ${c.display_name} — ${c.role} (${c.certificate_id})`);
+      summary.revoked.push(toRow(c));
+      if (!dryRun) {
+        c.status = 'revoked';
+        c.revoked_at = now;
+      }
+    }
+  }
+
+  if (!dryRun && summary.revoked.length) {
+    const out = Papa.unparse(certs, { columns: certsParsed.meta.fields, newline: '\n' });
+    fs.writeFileSync(CERTS_CSV_PATH, out + '\n', 'utf8');
+  }
+
+  fs.writeFileSync(SUMMARY_PATH, JSON.stringify(summary, null, 2) + '\n', 'utf8');
+
+  console.log(
+    `\n${dryRun ? '[dry run] Would revoke' : 'Revoked'} ${summary.revoked.length} certificate(s). ` +
+      `${summary.held_back.length} held back for review, ${summary.unreachable.length} source(s) unreachable.`
+  );
+
+  if (process.env.GITHUB_OUTPUT) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `revoked_count=${dryRun ? 0 : summary.revoked.length}\n`);
+  }
+}
+
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(`\nFailed: ${err.message}`);
+    process.exit(1);
+  });
+}
+
+module.exports = { normalize, htmlToText, sameSiteLinks, editorialTeamUrls, isListed };

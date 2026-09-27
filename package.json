@@ -10,6 +10,7 @@
     "revoke-certificate": "node scripts/revoke-certificate.js",
     "prune-expired": "node scripts/prune-expired.js",
     "audit-roster": "node scripts/audit-roster.js",
+    "sync-roster": "node scripts/sync-roster.js",
     "build:data": "node scripts/build-registry.js",
     "build": "npm run validate && npm run build:data && vite build",
     "dev": "npm run build:data && vite"
