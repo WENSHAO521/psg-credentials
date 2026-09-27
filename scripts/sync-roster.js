@@ -329,6 +329,7 @@ async function main() {
     checked_sources: [],
   };
   const liveRoster = new Map(); // journal -> parsed rows, only where trusted
+  const restoreCandidates = [];
 
   const journalNames = new Set([...sources.keys(), ...holdersByJournal.keys()]);
   for (const journal of [...journalNames].sort((a, b) => a.localeCompare(b))) {
@@ -377,16 +378,11 @@ async function main() {
       source: sourceUrls,
     });
 
-    // Restores first: a name that's back is back regardless of the guard below.
+    // Restore candidates: the name is back on the page. Decided after the
+    // loop, once we know whether this journal's roles could be read.
     for (const c of autoRevoked.filter((c) => c.journal === journal)) {
       if (!isListed(c, normalizedText, compactText) || (c.valid_until && c.valid_until < now)) continue;
-      console.log(`    listed again, restoring: ${c.display_name} — ${c.role} (${c.certificate_id})`);
-      summary.restored.push({ ...toRow(c), revoked_at: c.revoked_at });
-      if (!dryRun) {
-        c.status = 'active';
-        c.revoked_at = '';
-        c.revoked_reason = '';
-      }
+      restoreCandidates.push({ cert: c, row: toRow(c) });
     }
 
     const massDisappearance =
@@ -401,11 +397,11 @@ async function main() {
       for (const c of missing) {
         console.log(`    not listed: ${c.display_name} — ${c.role} (${c.certificate_id})`);
         summary.revoked.push(toRow(c));
-        if (!dryRun) {
-          c.status = 'revoked';
-          c.revoked_at = now;
-          c.revoked_reason = 'roster';
-        }
+        // Applied in memory even on a dry run (only the file write is
+        // skipped), so the dry run's issuing plan matches a real run's.
+        c.status = 'revoked';
+        c.revoked_at = now;
+        c.revoked_reason = 'roster';
       }
     }
 
@@ -484,8 +480,41 @@ async function main() {
     );
 
   const liveRows = [...liveRoster.values()].flat();
+  const listedInRole = (c) =>
+    liveRows.some((r) => r.role && personKey(r.journal, r.name) === personKey(c.journal, c.name) && sameRole(r.role, c.role));
+
+  // Restores: where roles could be read, the person must be back *in that
+  // role* (someone who only kept another role at the journal stays revoked);
+  // elsewhere the name being back is enough.
+  for (const { cert: c, row } of restoreCandidates) {
+    if (liveRoster.has(c.journal) && !listedInRole(c)) continue;
+    console.log(`    listed again, restoring: ${c.display_name} — ${c.role} (${c.certificate_id})`);
+    summary.restored.push({ ...row, revoked_at: c.revoked_at });
+    c.status = 'active';
+    c.revoked_at = '';
+    c.revoked_reason = '';
+  }
+
   const activeNow = certs.filter((c) => isActiveAppointment(c, now) && liveRoster.has(c.journal));
-  const { missing: noCert, roleMismatches } = compareRoster(liveRows, activeNow);
+  const { missing: noCert, roleMismatches, orphaned } = compareRoster(liveRows, activeNow);
+
+  // Still on the page, but no longer in this role (e.g. stepped down as Chair
+  // while staying on the board) and not explained as a role change above:
+  // the name check can't see this, the parsed roster can.
+  for (const c of orphaned) {
+    if (listedInRole(c)) continue;
+    console.log(`    no longer listed in this role: ${c.display_name} — ${c.role} (${c.certificate_id})`);
+    summary.revoked.push({
+      certificate_id: c.certificate_id,
+      display_name: c.display_name,
+      role: c.role,
+      journal: c.journal,
+      source: 'role no longer listed',
+    });
+    c.status = 'revoked';
+    c.revoked_at = now;
+    c.revoked_reason = 'roster';
+  }
   const pending = []; // [row, kind, extra]
 
   // Role changed on the site: retire the old certificate, issue the new role.
