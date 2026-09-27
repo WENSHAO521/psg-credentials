@@ -425,7 +425,9 @@ async function main() {
         journal,
         reason: massDisappearance
           ? 'held back (see above)'
-          : `parser found ${covered.length}/${listed.length} listed holders`,
+          : !loaded.people.length && !listed.length
+            ? 'no names on the board page yet'
+            : `parser found ${covered.length}/${listed.length} listed holders`,
       });
       console.log(`    roster rows kept as-is (parser coverage ${covered.length}/${listed.length})`);
     }
