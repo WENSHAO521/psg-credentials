@@ -23,6 +23,12 @@ async function main() {
     for (const link of sameSiteLinks(html, url)) {
       if (!/%7B|\$\{/.test(link)) console.log(`  link: ${link}`);
     }
+    // Other *.panorama-sg.com hosts too (e.g. the group site's "Visit journal
+    // website" links into journals.panorama-sg.com).
+    const host = new URL(url).host;
+    for (const m of html.matchAll(/href\s*=\s*["'](https?:\/\/[^"'#]*panorama-sg\.com[^"'#]*)/gi)) {
+      if (new URL(m[1]).host !== host) console.log(`  xlink: ${m[1]}`);
+    }
   }
 }
 
