@@ -1,11 +1,20 @@
 // Appointment terms for automatically issued certificates (sync-roster.js).
 // Journals: 3 years. Panorama Research Institute, per its charter: Research
-// Fellow 3 years, Visiting Scholar 6 months, every other role 1 year.
+// Fellow 3 years, Visiting Scholar 6 months, leadership 10 years, every other
+// role 1 year.
 // A term ends the day before its anniversary (2026-08-15 -> 2029-08-14),
 // matching add-certificate.js.
 const INSTITUTE_TERM_MONTHS = {
   'Research Fellow': 36,
   'Visiting Scholar': 6,
+  // Institute leadership: 10 years.
+  Director: 120,
+  'Director of Research': 120,
+  'Research Center Director': 120,
+  'Collaboration Coordinator': 120,
+  'Publications Coordinator': 120,
+  'Events Coordinator': 120,
+  'Scholar Program Coordinator': 120,
 };
 const INSTITUTE_DEFAULT_MONTHS = 12;
 const JOURNAL_TERM_MONTHS = 36;

@@ -70,6 +70,8 @@ const EXTRA_SOURCES = {
     also: [],
     follow: INSTITUTE_ROSTER_LINK,
     roleFromPath: true,
+    // The leadership page sets names in plain text (see parseRoster).
+    plainTextNamesAt: /\/people\/leadership\/?$/i,
   },
 };
 
@@ -203,7 +205,7 @@ function rosterLinks(links, follow) {
 // Returns { text, urls, links, people } for a source, or throws if no roster
 // page could be read -- the start page alone (mostly navigation) never counts
 // as a roster.
-async function loadSource({ start, also, follow, roleFromPath }) {
+async function loadSource({ start, also, follow, roleFromPath, plainTextNamesAt }) {
   const errors = [];
   const candidates = new Set(also);
   const allLinks = [];
@@ -234,7 +236,12 @@ async function loadSource({ start, also, follow, roleFromPath }) {
       okUrls.push(url);
       const slug = new URL(url).pathname.split('/').filter(Boolean).pop() || '';
       const defaultRole = roleFromPath ? roleFromLabel(slug.replace(/[-_]+/g, ' ')) || '' : '';
-      people.push(...parseRoster(html, { defaultRole }));
+      const plainTextNames = Boolean(plainTextNamesAt && plainTextNamesAt.test(new URL(url).pathname));
+      const found = parseRoster(html, { defaultRole, plainTextNames });
+      // On the leadership page the text after a name is a job description,
+      // not an affiliation; the center a director runs is the useful part.
+      if (plainTextNames) for (const p of found) p.affiliation = p.role === 'Research Center Director' ? p.unit : '';
+      people.push(...found);
       if (process.env.DEBUG_HTML) {
         const body = html
           .replace(/<(script|style|svg|nav|header|footer)[\s\S]*?<\/\1>/gi, ' ')
@@ -414,7 +421,7 @@ async function main() {
     if (!massDisappearance && coverage >= MIN_PARSE_COVERAGE) {
       liveRoster.set(
         journal,
-        loaded.people.map((p) => ({ journal, role: p.role, name: p.name, displayName: p.displayName, affiliation: p.affiliation }))
+        loaded.people.map((p) => ({ journal, role: p.role, name: p.name, displayName: p.displayName, affiliation: p.affiliation, unit: p.unit }))
       );
     } else {
       summary.roster_not_updated.push({
@@ -461,6 +468,8 @@ async function main() {
       valid_until: termEnd(validFrom, journalType.get(row.journal), row.role),
       status: 'active',
       cert_type: 'appointment',
+      // Which center a Research Center Director runs; the role alone doesn't say.
+      detail: row.role === 'Research Center Director' ? row.unit || '' : '',
     });
     certs.push(cert);
     newCerts.push(cert);

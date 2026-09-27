@@ -24,8 +24,12 @@ links, and the Research Institute's `/people/...` pages, then:
 - **restores** such a certificate automatically if the name reappears within
   those 30 days;
 - **issues** a certificate to anyone listed without one for their role —
-  journals 3 years; Research Institute: Research Fellow 3 years, Visiting
-  Scholar 6 months, other roles 1 year (`scripts/lib/terms.js`);
+  journals 3 years; Research Institute: leadership (Director, Director of
+  Research, coordinators, research-center directors) 10 years, Research
+  Fellow 3 years, Visiting Scholar 6 months, other roles 1 year
+  (`scripts/lib/terms.js`). A research-center director's certificate records
+  the center in `detail`; the Director's own certificate is signed by the
+  Secretariat;
 - **replaces** the certificate when someone's role on the site changes (old
   one revoked as `reassigned`, new one issued);
 - **renews** certificates expiring within a week if the holder is still listed;

@@ -31,6 +31,8 @@ const ROLE_ALIASES = {
   'academic advisory': 'Academic Advisory Board',
   'advisory board': 'Institute Advisory Board',
   'advisory board member': 'Institute Advisory Board',
+  'director of research': 'Director of Research',
+  'research center director': 'Research Center Director',
   'international advisory board member': 'International Advisory Board',
 };
 
@@ -48,6 +50,7 @@ const NOT_NAME_WORDS = new Set([
   'support', 'guidance', 'oversight', 'authors', 'participants', 'responsibilities',
   'what', 'receive', 'scholars', 'publication', 'information', 'policy', 'overview',
   'appointment', 'expertise', 'show', 'more', 'less', 'join', 'apply',
+  'announced', 'be', 'current', 'cohort', 'openings', 'director', 'coordinator',
 ]);
 
 const TITLE_PREFIX = /^(dr|prof|professor|mr|mrs|ms|assoc|ven|venerable|rev)\.?\s+/i;
@@ -57,7 +60,7 @@ const DEGREE_SUFFIX = /,\s*(m\.?a|m\.?s|m\.?sc|ph\.?d|m\.?d|mba|m\.?phil|ed\.?d)
 function singularize(s) {
   return s
     .replace(/\beditors-in-chief\b/g, 'editor-in-chief')
-    .replace(/\b(editor|member|fellow|scholar|assistant|contributor|intern)s\b/g, '$1');
+    .replace(/\b(editor|member|fellow|scholar|assistant|contributor|intern|director|coordinator)s\b/g, '$1');
 }
 
 const ROLE_LOOKUP = new Map();
@@ -71,24 +74,33 @@ function roleFromLabel(text) {
   let t = text.split(/\s[/｜|]\s?|｜/)[0];
   t = t.replace(/[()（）:：]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
   if (!t || t.length > 60) return null;
-  return ROLE_LOOKUP.get(singularize(t)) || null;
+  // "Director, Panorama Research Institute" -> "Director"
+  return ROLE_LOOKUP.get(singularize(t)) || ROLE_LOOKUP.get(singularize(t.split(',')[0].trim())) || null;
 }
 
 // As it should print on a certificate: honorific kept ("Dr. Jiale Li"), degree
 // suffix dropped ("Hengjie Wang, M.A." -> "Hengjie Wang").
+// Trailing notes in brackets are dropped too: "Dr. Junyu Zhu (Beijing Normal
+// University)" -> "Dr. Junyu Zhu".
 function displayName(text) {
-  return text.replace(/\s+/g, ' ').trim().replace(DEGREE_SUFFIX, '').replace(/[,;:]+$/, '').trim();
+  return text
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\s*[(（][^)）]*[)）]\s*$/, '')
+    .replace(DEGREE_SUFFIX, '')
+    .replace(/[,;:]+$/, '')
+    .trim();
 }
 
 function cleanName(text) {
-  let t = text.replace(/\s+/g, ' ').trim();
+  let t = text.replace(/\s+/g, ' ').trim().replace(/\s*[(（][^)）]*[)）]\s*$/, '');
   for (let i = 0; i < 2; i++) t = t.replace(TITLE_PREFIX, '');
   t = t.replace(DEGREE_SUFFIX, '').replace(/[,;:]+$/, '').trim();
   return t;
 }
 
 function looksLikeName(text) {
-  const raw = text.replace(/\s+/g, ' ').trim();
+  const raw = text.replace(/\s+/g, ' ').trim().replace(/\s*[(（][^)）]*[)）]\s*$/, '');
   const t = cleanName(raw);
   if (t.length < 3 || t.length > 50) return false;
   const words = t.split(' ');
@@ -169,7 +181,14 @@ function tokenize(html) {
 
 // defaultRole: the role for names not under any recognised label -- used for
 // the institute's one-role-per-page People pages ("/people/research-assistants").
-function parseRoster(html, { defaultRole = '' } = {}) {
+// plainTextNames: also take names set in plain text -- the institute's
+// leadership page lists them that way ("Director, Panorama Research Institute"
+// / "Dr. Zeyu Wang"). Off elsewhere: plain text there is full of name-shaped
+// phrases ("Current Cohort").
+// Each person also gets `unit`: the last bold/heading text above them that is
+// neither a role nor a name (e.g. "Center for Health and Medical Research").
+function parseRoster(html, { defaultRole = '', plainTextNames = false } = {}) {
+  const nameKind = (kind) => kind !== 't' || plainTextNames;
   const tokens = tokenize(html);
   const people = [];
   // sectionRole: set by a heading that names a role ("Editorial Board Members").
@@ -180,6 +199,7 @@ function parseRoster(html, { defaultRole = '' } = {}) {
   let sectionRole = defaultRole;
   let currentRole = defaultRole;
   let oneShot = '';
+  let unit = '';
 
   for (let i = 0; i < tokens.length; i++) {
     const { kind, text } = tokens[i];
@@ -190,13 +210,14 @@ function parseRoster(html, { defaultRole = '' } = {}) {
       // that person's own label, not a new section.
       const prev = people[people.length - 1];
       const next = tokens[i + 1];
-      const nextIsName = next && next.kind !== 't' && looksLikeName(next.text) && !roleFromLabel(next.text);
+      const nextIsName = next && nameKind(next.kind) && looksLikeName(next.text) && !roleFromLabel(next.text);
       if (prev && prev.tokenIndex === i - 1 && !nextIsName) {
         prev.role = role;
       } else if (kind === 'h') {
         sectionRole = role;
         currentRole = role;
         oneShot = '';
+        unit = '';
       } else if (sectionRole && sectionRole !== role) {
         oneShot = role;
       } else {
@@ -205,12 +226,12 @@ function parseRoster(html, { defaultRole = '' } = {}) {
       continue;
     }
 
-    if (kind !== 't' && looksLikeName(text)) {
+    if (nameKind(kind) && looksLikeName(text)) {
       let affiliation = '';
       let fallback = '';
       for (let j = i + 1; j < Math.min(tokens.length, i + 6); j++) {
         const t = tokens[j];
-        if (roleFromLabel(t.text) || (t.kind !== 't' && looksLikeName(t.text))) break;
+        if (roleFromLabel(t.text) || (nameKind(t.kind) && looksLikeName(t.text))) break;
         if (FIELD_LABEL.test(t.text)) break;
         if (!fallback && t.kind === 't') fallback = t.text;
         if (AFFILIATION_HINT.test(t.text)) {
@@ -223,6 +244,7 @@ function parseRoster(html, { defaultRole = '' } = {}) {
         name: cleanName(text),
         displayName: displayName(text),
         affiliation: affiliation || fallback,
+        unit,
         tokenIndex: i,
       });
       oneShot = '';
@@ -232,6 +254,7 @@ function parseRoster(html, { defaultRole = '' } = {}) {
     // A heading that's neither a role nor a name ("Editorial Team", "Senior
     // Editorial Team") starts a section whose role we don't know -- don't
     // carry the previous section's role into it.
+    if (kind !== 't') unit = text;
     if (kind === 'h') {
       sectionRole = defaultRole;
       currentRole = defaultRole;
@@ -248,7 +271,7 @@ function parseRoster(html, { defaultRole = '' } = {}) {
       seen.add(key);
       return true;
     })
-    .map(({ role, name, displayName: shown, affiliation }) => ({ role, name, displayName: shown, affiliation }));
+    .map(({ role, name, displayName: shown, affiliation, unit: u }) => ({ role, name, displayName: shown, affiliation, unit: u }));
 }
 
 module.exports = { parseRoster, roleFromLabel, looksLikeName, cleanName, displayName, tokenize };

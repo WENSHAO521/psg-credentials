@@ -22,7 +22,8 @@ const JOURNAL_DIRECTORY_FIELDS = ['journal', 'code', 'issn', 'editor_in_chief', 
 // ever invented, the signature line stays blank, and the seal switches to
 // the silver Secretariat version instead of the gold one sitting next to
 // an empty line that looks unfinished.
-const SECRETARIAT_ROLES = new Set(['Editor-in-Chief']);
+// Same for the Institute's Director, who signs the Institute's certificates.
+const SECRETARIAT_ROLES = new Set(['Editor-in-Chief', 'Director']);
 const SECRETARIAT_TITLE = 'Secretariat, Panorama Scholarly Group';
 
 // Only these fields are ever written to the public JSON. Anything else in the
