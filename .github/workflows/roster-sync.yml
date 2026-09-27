@@ -54,7 +54,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add source/certificates.csv
           git commit -m "Revoke ${{ steps.sync.outputs.revoked_count }} certificate(s) no longer on the live member rosters"
-          git pull --rebase
+          git pull --rebase --autostash
           git push
 
       - name: Report to tracking issue
