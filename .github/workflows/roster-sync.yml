@@ -1,9 +1,11 @@
 name: Roster sync
 
-# Weekly (Mondays): check every active appointment certificate against the live
-# editorial-team pages of the journals (journals.panorama-sg.com) and the
-# Research Institute site (research.panorama-sg.com), and revoke certificates
-# whose holders are no longer listed. See scripts/sync-roster.js.
+# Weekly (Mondays): read the journals' editorial board pages
+# (journals.panorama-sg.com) and the Research Institute's People pages
+# (research.panorama-sg.com); revoke certificates whose holders are no longer
+# listed, restore auto-revoked ones whose holders are listed again, refresh
+# source/editorial-boards.csv, and report people listed without a certificate
+# or under a different role. See scripts/sync-roster.js.
 on:
   schedule:
     - cron: '17 2 * * 1'
@@ -47,14 +49,14 @@ jobs:
           DEBUG_DUMP: ${{ inputs.debug && '1' || '' }}
           DEBUG_HTML: ${{ inputs.debug && '1' || '' }}
 
-      - name: Validate and commit revocations
-        if: steps.sync.outputs.revoked_count != '0'
+      - name: Validate and commit changes
+        if: steps.sync.outputs.changed == 'true'
         run: |
           node scripts/validate-data.js
           git config user.name "psg-credentials-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add source/certificates.csv
-          git commit -m "Revoke ${{ steps.sync.outputs.revoked_count }} certificate(s) no longer on the live member rosters"
+          git add source/certificates.csv source/editorial-boards.csv
+          git commit -m "Roster sync: revoke ${{ steps.sync.outputs.revoked_count }}, restore ${{ steps.sync.outputs.restored_count }}, refresh editorial-boards.csv"
           git pull --rebase --autostash
           git push
 
@@ -75,26 +77,47 @@ jobs:
               return [header, sep, body].join('\n');
             }
 
+            const certCols = ['certificate_id', 'display_name', 'role', 'journal'];
             const body = [
-              `Last checked: ${s.checked_on}${s.dry_run ? ' (dry run -- nothing was revoked)' : ''}`,
+              `Last checked: ${s.checked_on}${s.dry_run ? ' (dry run -- nothing was changed)' : ''}`,
               '',
               `### ${s.dry_run ? 'Would be revoked' : 'Revoked this run'} (${s.revoked.length})`,
-              'No longer listed on the live roster. Each stays verifiable as "Revoked" for 30 days before the lifecycle workflow removes it. If one is a mistake (e.g. a name spelled differently on the website), set `status` back to `active` and clear `revoked_at` in `source/certificates.csv`.',
+              'No longer listed on the live roster. Each stays verifiable as "Revoked" (reason: no longer on the roster) for 30 days before the lifecycle workflow removes it. If the name reappears on the site within that time, the next run restores it automatically. To undo by hand: set `status` back to `active` and clear `revoked_at` / `revoked_reason` in `source/certificates.csv`.',
               '',
-              table(s.revoked, ['certificate_id', 'display_name', 'role', 'journal', 'source']),
+              table(s.revoked, certCols),
+              '',
+              `### ${s.dry_run ? 'Would be restored' : 'Restored this run'} (${s.restored.length})`,
+              'Auto-revoked earlier, listed on the site again.',
+              '',
+              table(s.restored, [...certCols, 'revoked_at']),
+              '',
+              `### Listed on the site without a certificate (${s.missing_certificates.length})`,
+              'New members, or an extra role for an existing holder. Issue with `npm run add-certificate` if appropriate.',
+              '',
+              table(s.missing_certificates, ['name', 'role', 'journal', 'affiliation']),
+              '',
+              `### Role differs from the certificate (${s.role_mismatches.length})`,
+              'Same person, different role on the site -- usually a promotion or a move. Revoke the old one (reason `reassigned`) and issue a new certificate if so.',
+              '',
+              table(s.role_mismatches, ['certificate_id', 'display_name', 'journal', 'certificate_role', 'page_role']),
               '',
               `### Held back for review (${s.held_back.length})`,
               'More than half of a journal\'s holders vanished at once, which usually means the page moved or broke rather than a mass departure, so nothing was revoked. Check the page; revoke by hand with `npm run revoke-certificate` if they really left.',
               '',
-              table(s.held_back, ['certificate_id', 'display_name', 'role', 'journal', 'source']),
+              table(s.held_back, certCols),
               '',
               `### Could not read (${s.unreachable.length})`,
               table(s.unreachable, ['journal', 'holders', 'error']),
               '',
+              `### editorial-boards.csv not refreshed for (${s.roster_not_updated.length})`,
+              'The page was read (revocations above still apply) but its layout could not be parsed reliably, so these journals keep their previous rows and are left out of the two sections on missing certificates and role changes.',
+              '',
+              table(s.roster_not_updated, ['journal', 'reason']),
+              '',
               `### No website configured (${s.no_source.length})`,
               table(s.no_source, ['journal', 'holders']),
               '',
-              `<details><summary>Sources checked (${s.checked_sources.length})</summary>\n\n${table(s.checked_sources, ['journal', 'url', 'pages', 'holders', 'missing'])}\n</details>`,
+              `<details><summary>Sources checked (${s.checked_sources.length})</summary>\n\n${table(s.checked_sources, ['journal', 'url', 'pages', 'holders', 'missing', 'parsed'])}\n</details>`,
             ].join('\n');
 
             const title = 'Certificate Registry: Roster Sync Report';

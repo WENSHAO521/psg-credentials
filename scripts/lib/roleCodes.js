@@ -24,6 +24,10 @@ const ROLE_CODES = {
   // Panorama Research Institute
   'Research Fellow': 'RF',
   'Associate Research Fellow': 'ARF',
+  'Young Research Fellow': 'YRF',
+  'Part-time Research Fellow': 'PTRF',
+  'Distinguished Research Fellow': 'DRF',
+  'Undergraduate Research Intern': 'URI',
   'Visiting Scholar': 'VS',
   'Research Assistant': 'RA',
   'Institute Advisory Board': 'IABI',
