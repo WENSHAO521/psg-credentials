@@ -59,6 +59,7 @@ const SECONDARY_ITEMS = [
 function CertificatesMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const triggerRef = useRef(null);
   const location = useLocation();
   const active = CERTIFICATE_SECTIONS.some((s) => location.pathname.startsWith(s.to));
 
@@ -72,7 +73,12 @@ function CertificatesMenu() {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     }
     function onKeyDown(e) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        // The focused link is about to unmount; keep keyboard users where
+        // they were instead of dropping focus back to the page body.
+        triggerRef.current?.focus();
+      }
     }
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -85,6 +91,7 @@ function CertificatesMenu() {
   return (
     <div ref={ref} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
@@ -155,7 +162,7 @@ function VerifyButton({ className = "" }) {
       className={({ isActive }) =>
         `inline-flex items-center justify-center gap-2 py-2 px-4 border-2 font-mono text-xs font-semibold tracking-[0.15em] uppercase transition-colors focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2 ${
           isActive
-            ? "border-red bg-red text-paper-pure"
+            ? "border-red bg-red text-white"
             : "border-ink bg-ink text-paper-pure hover:bg-paper-pure hover:text-ink"
         } ${className}`
       }
@@ -190,7 +197,7 @@ export default function Layout({ children }) {
             </span>
           </Link>
 
-          <nav className="hidden md:flex font-mono text-xs tracking-[0.15em] uppercase items-center gap-x-5 lg:gap-x-6 whitespace-nowrap">
+          <nav className="hidden lg:flex font-mono text-xs tracking-[0.15em] uppercase items-center gap-x-6 whitespace-nowrap">
             {PRIMARY_ITEMS.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
                 {item.label}
@@ -211,7 +218,7 @@ export default function Layout({ children }) {
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
-            className="md:hidden p-2 -mr-2 text-ink focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
+            className="lg:hidden p-2 -mr-2 text-ink focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
           >
             {menuOpen ? <IconX size={22} stroke={1.75} /> : <IconMenu2 size={22} stroke={1.75} />}
           </button>
@@ -220,7 +227,7 @@ export default function Layout({ children }) {
         {menuOpen && (
           <nav
             id="mobile-nav"
-            className="md:hidden border-t border-surface-line px-4 pt-2 pb-4 font-mono text-sm tracking-[0.1em] uppercase flex flex-col"
+            className="lg:hidden border-t border-surface-line px-4 pt-2 pb-4 font-mono text-sm tracking-[0.1em] uppercase flex flex-col"
           >
             {PRIMARY_ITEMS.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={mobileNavLinkClass}>
