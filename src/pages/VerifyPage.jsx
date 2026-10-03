@@ -219,6 +219,9 @@ export default function VerifyPage() {
                   <p className="text-steel text-sm mb-2">
                     {outcome.record.role} &middot; {outcome.record.journal}
                   </p>
+                  {outcome.record.detail && (
+                    <p className="text-ink text-sm mb-2">{outcome.record.detail}</p>
+                  )}
                   <p className="text-sm text-ink">
                     {outcome.variant === "revoked"
                       ? "This credential has been revoked and is no longer valid."

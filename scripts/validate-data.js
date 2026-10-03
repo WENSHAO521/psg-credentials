@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const Papa = require('papaparse');
 const { ROLE_CODES } = require('./lib/roleCodes');
-const { REVOKED_REASONS } = require('./lib/revokedReasons');
+const { REVOKED_REASONS, reasonAllowedFor } = require('./lib/revokedReasons');
 
 const CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
 const REQUIRED_FIELDS = [
@@ -56,6 +56,12 @@ function main() {
     if (certType === 'publication_sponsorship' && row.role !== 'Publication Sponsorship') {
       errors.push(`${line}: cert_type "publication_sponsorship" requires role "Publication Sponsorship"`);
     }
+    if (row.role === 'Publication Sponsorship' && certType !== 'publication_sponsorship') {
+      errors.push(`${line}: role "Publication Sponsorship" requires cert_type "publication_sponsorship", not "${certType || 'appointment'}"`);
+    }
+    if (certType === 'publication_sponsorship' && row.journal !== 'Panorama Research Institute') {
+      errors.push(`${line}: cert_type "publication_sponsorship" must be issued by "Panorama Research Institute", not "${row.journal}"`);
+    }
 
     for (const dateField of ['issue_date', 'valid_from', 'valid_until']) {
       if (row[dateField] && !DATE_RE.test(row[dateField])) {
@@ -92,6 +98,8 @@ function main() {
     if (revokedReason) {
       if (!REVOKED_REASONS[revokedReason]) {
         errors.push(`${line}: revoked_reason "${revokedReason}" must be one of ${Object.keys(REVOKED_REASONS).join('/')} (or blank)`);
+      } else if (!reasonAllowedFor(revokedReason, certType)) {
+        errors.push(`${line}: revoked_reason "${revokedReason}" does not apply to cert_type "${certType || 'appointment'}"`);
       } else if (row.status !== 'revoked') {
         errors.push(`${line}: revoked_reason is set but status is not "revoked"`);
       }

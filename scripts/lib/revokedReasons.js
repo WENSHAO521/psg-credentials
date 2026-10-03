@@ -9,4 +9,15 @@ const REVOKED_REASONS = {
   withdrawn: 'Sponsored article withdrawn or retracted (publication sponsorship only)',
 };
 
-module.exports = { REVOKED_REASONS };
+// Reasons that only make sense for one certificate type: a withdrawn article
+// says nothing true about an appointment or an award.
+const REASON_CERT_TYPES = {
+  withdrawn: 'publication_sponsorship',
+};
+
+function reasonAllowedFor(reason, certType) {
+  const only = REASON_CERT_TYPES[reason];
+  return !only || only === (certType || 'appointment');
+}
+
+module.exports = { REVOKED_REASONS, reasonAllowedFor };
