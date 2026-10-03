@@ -92,22 +92,24 @@ async function main() {
     const journalPrompt = certType === 'conference_invitation'
       ? 'Conference (must match source/journals.csv exactly -- add it there first as a type=event row if new)'
       : 'Journal (must match source/journals.csv exactly)';
-    let journal;
-    while (true) {
-      journal = certType === 'publication_sponsorship'
-        ? await ask(rl, 'Sponsor (must match source/journals.csv exactly)', { defaultValue: SPONSOR })
-        : await ask(rl, journalPrompt);
+    let journal = certType === 'publication_sponsorship' ? SPONSOR : '';
+    if (journal) console.log(`Sponsor: ${journal}`);
+    while (!journal) {
+      journal = await ask(rl, journalPrompt);
       if (journalNames.includes(journal)) break;
       console.log(`  "${journal}" is not in source/journals.csv. Known journals:`);
       journalNames.forEach((j) => console.log(`    - ${j}`));
       console.log('  Add it to journals.csv first, or pick one of the names above.\n');
+      journal = '';
     }
 
+    // The sponsorship role belongs to its own cert_type only.
+    const roleChoices = Object.keys(ROLE_CODES).filter((r) => r !== SPONSORSHIP_ROLE);
     let role = certType === 'publication_sponsorship' ? SPONSORSHIP_ROLE : '';
     while (!role) {
-      role = await ask(rl, `Role (${Object.keys(ROLE_CODES).join(' / ')})`);
-      if (ROLE_CODES[role]) break;
-      console.log(`  "${role}" is not a known role. Valid roles:\n    - ${Object.keys(ROLE_CODES).join('\n    - ')}\n`);
+      role = await ask(rl, `Role (${roleChoices.join(' / ')})`);
+      if (roleChoices.includes(role)) break;
+      console.log(`  "${role}" is not a valid role here. Valid roles:\n    - ${roleChoices.join('\n    - ')}\n`);
       role = '';
     }
 

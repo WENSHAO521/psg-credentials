@@ -10,7 +10,7 @@ const path = require('path');
 const readline = require('readline');
 const { execFileSync } = require('child_process');
 const Papa = require('papaparse');
-const { REVOKED_REASONS } = require('./lib/revokedReasons');
+const { REVOKED_REASONS, reasonAllowedFor } = require('./lib/revokedReasons');
 
 const CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
 
@@ -60,7 +60,9 @@ async function main() {
 
     // Manual revocations never use "roster" -- that one is reserved for
     // sync-roster, which also auto-restores it if the name reappears.
-    const reasons = Object.keys(REVOKED_REASONS).filter((r) => r !== 'roster');
+    const reasons = Object.keys(REVOKED_REASONS).filter(
+      (r) => r !== 'roster' && reasonAllowedFor(r, row.cert_type)
+    );
     console.log('\nReason (shown publicly on the verify page):');
     reasons.forEach((r, i) => console.log(`  ${i + 1}. ${r} -- ${REVOKED_REASONS[r]}`));
     const pick = (await rl.readLine(`Choose 1-${reasons.length} (blank for none): `)).trim();
