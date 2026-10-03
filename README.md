@@ -50,11 +50,32 @@ for review instead). To undo a wrong revocation, set `status` back to
 
 Run locally: `DRY_RUN=1 npm run sync-roster`.
 
+## Publication sponsorships
+
+The Research Institute sponsors (waives) the article processing charge of
+selected articles. Each sponsored author gets a `publication_sponsorship`
+certificate: `npm run add-certificate`, type `publication_sponsorship`, then
+the article title (`detail`) and, optionally, the author's affiliation
+(`affiliation`). The role is always `Publication Sponsorship`, the sponsor
+always the Panorama Research Institute (signed by its Director, bronze seal).
+
+The certificate number (`PSG-PRI-SPN-<year>-<seq>`) doubles as the
+Sponsorship No. authors cite when submitting, e.g. under Funding /
+Supporting Agencies:
+
+> Panorama Research Institute, Sponsorship No. PSG-PRI-SPN-2026-000014
+
+Editors can confirm it on `/verify` or look it up on `/sponsorship` by author
+name or exact article title. Sponsorships don't expire and the roster sync
+never touches them; if an article is withdrawn, revoke with reason
+`withdrawn`.
+
 ## Revocation reasons
 
 `revoked_reason` in `source/certificates.csv` is shown publicly on the verify
 page: `roster` (set by the sync only), `resigned`, `reassigned` (moved to a
-new role, new certificate issued) or `error`. `npm run revoke-certificate`
+new role, new certificate issued), `error`, or `withdrawn` (a sponsored
+article withdrawn or retracted). `npm run revoke-certificate`
 asks for one.
 
 ## Local dev

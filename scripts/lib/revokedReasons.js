@@ -6,6 +6,7 @@ const REVOKED_REASONS = {
   resigned: 'Stepped down from the role',
   reassigned: 'Moved to a different role (a new certificate replaces this one)',
   error: 'Issued in error',
+  withdrawn: 'Sponsored article withdrawn or retracted (publication sponsorship only)',
 };
 
 module.exports = { REVOKED_REASONS };

@@ -176,9 +176,12 @@ export default function VerifyPage() {
                 <h2 className="font-sans font-bold text-2xl mb-1">
                   {outcome.record.display_name}
                 </h2>
-                <p className="text-steel text-sm mb-6">
+                <p className={`text-steel text-sm ${outcome.record.detail ? "mb-1" : "mb-6"}`}>
                   {outcome.record.role} &middot; {outcome.record.journal}
                 </p>
+                {outcome.record.detail && (
+                  <p className="text-ink text-sm mb-6">{outcome.record.detail}</p>
+                )}
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left border-t border-surface-line pt-6 font-mono text-xs">
                   <div>
                     <dt className="text-steel uppercase tracking-[0.1em] mb-1">

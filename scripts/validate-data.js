@@ -13,7 +13,7 @@ const REQUIRED_FIELDS = [
 ];
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const STATUS_VALUES = new Set(['active', 'revoked']);
-const CERT_TYPE_VALUES = new Set(['appointment', 'paper_award', 'conference_invitation']);
+const CERT_TYPE_VALUES = new Set(['appointment', 'paper_award', 'conference_invitation', 'publication_sponsorship']);
 
 function fail(errors) {
   console.error(`Found ${errors.length} error(s):`);
@@ -52,6 +52,9 @@ function main() {
     }
     if (certType && certType !== 'appointment' && !(row.detail || '').trim()) {
       errors.push(`${line}: cert_type "${certType}" requires a "detail" value (paper title / event date & location)`);
+    }
+    if (certType === 'publication_sponsorship' && row.role !== 'Publication Sponsorship') {
+      errors.push(`${line}: cert_type "publication_sponsorship" requires role "Publication Sponsorship"`);
     }
 
     for (const dateField of ['issue_date', 'valid_from', 'valid_until']) {

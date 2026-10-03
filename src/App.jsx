@@ -4,6 +4,7 @@ import Home from "./pages/Home.jsx";
 import InstitutePage from "./pages/InstitutePage.jsx";
 import AwardsPage from "./pages/AwardsPage.jsx";
 import EventsPage from "./pages/EventsPage.jsx";
+import SponsorshipPage from "./pages/SponsorshipPage.jsx";
 import JournalsPage from "./pages/JournalsPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
 import VerifyPage from "./pages/VerifyPage.jsx";
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/institute" element={<InstitutePage />} />
         <Route path="/awards" element={<AwardsPage />} />
         <Route path="/events" element={<EventsPage />} />
+        <Route path="/sponsorship" element={<SponsorshipPage />} />
         <Route path="/journals" element={<JournalsPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/verify" element={<VerifyPage />} />
