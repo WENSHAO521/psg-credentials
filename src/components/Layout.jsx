@@ -66,7 +66,7 @@ export default function Layout({ children }) {
             </span>
           </Link>
 
-          <nav className="hidden md:flex font-mono text-xs tracking-[0.15em] uppercase items-center gap-x-6">
+          <nav className="hidden lg:flex font-mono text-xs tracking-[0.15em] uppercase items-center gap-x-6">
             {NAV_ITEMS.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
                 {item.label}
@@ -80,7 +80,7 @@ export default function Layout({ children }) {
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
-            className="md:hidden p-2 -mr-2 text-ink focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
+            className="lg:hidden p-2 -mr-2 text-ink focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
           >
             {menuOpen ? <IconX size={22} stroke={1.75} /> : <IconMenu2 size={22} stroke={1.75} />}
           </button>
@@ -89,7 +89,7 @@ export default function Layout({ children }) {
         {menuOpen && (
           <nav
             id="mobile-nav"
-            className="md:hidden border-t border-surface-line px-4 py-2 font-mono text-sm tracking-[0.1em] uppercase flex flex-col"
+            className="lg:hidden border-t border-surface-line px-4 py-2 font-mono text-sm tracking-[0.1em] uppercase flex flex-col"
           >
             {NAV_ITEMS.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={mobileNavLinkClass}>

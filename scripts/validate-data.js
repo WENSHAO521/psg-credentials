@@ -56,6 +56,9 @@ function main() {
     if (certType === 'publication_sponsorship' && row.role !== 'Publication Sponsorship') {
       errors.push(`${line}: cert_type "publication_sponsorship" requires role "Publication Sponsorship"`);
     }
+    if (certType === 'publication_sponsorship' && row.journal !== 'Panorama Research Institute') {
+      errors.push(`${line}: cert_type "publication_sponsorship" must be issued by "Panorama Research Institute", not "${row.journal}"`);
+    }
 
     for (const dateField of ['issue_date', 'valid_from', 'valid_until']) {
       if (row[dateField] && !DATE_RE.test(row[dateField])) {
