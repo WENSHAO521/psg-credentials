@@ -32,7 +32,7 @@ const SECRETARIAT_TITLE = 'Secretariat, Panorama Scholarly Group';
 const PUBLIC_FIELDS = [
   'name', 'display_name', 'certificate_id', 'journal', 'role',
   'issue_date', 'valid_from', 'valid_until', 'token', 'status',
-  'revoked_reason', 'cert_type', 'detail',
+  'revoked_reason', 'cert_type', 'detail', 'affiliation',
 ];
 
 function loadJournals() {

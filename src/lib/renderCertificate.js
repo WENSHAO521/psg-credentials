@@ -17,6 +17,7 @@ function fillPlaceholders(templateText, record) {
     "{{VALID_UNTIL}}": record.valid_until,
     "{{ISSUE_DATE}}": record.issue_date || "",
     "{{DETAIL}}": record.detail || "",
+    "{{AFFILIATION}}": record.affiliation || "",
     "{{CERTIFICATE_ID}}": record.certificate_id,
     "{{SIGNATORY_NAME}}": record.signatory_name || "",
     "{{SIGNATORY_TITLE}}": record.signatory_title || "",
@@ -104,9 +105,11 @@ function fitAllText(svgEl) {
   const journalEl = svgEl.querySelector("#field-journal");
   const detailEl = svgEl.querySelector("#field-detail");
   const signatoryEl = svgEl.querySelector("#field-signatory-name");
+  const affiliationEl = svgEl.querySelector("#field-affiliation");
 
   if (nameEl) shrinkToFit(nameEl, FRAME_INNER_MAX_WIDTH, 22);
   if (roleEl) shrinkToFit(roleEl, FRAME_INNER_MAX_WIDTH, 14);
+  if (affiliationEl && affiliationEl.textContent) shrinkToFit(affiliationEl, FRAME_INNER_MAX_WIDTH, 8);
   // Signature line runs x=70..230 (160pt); leave a small margin either side.
   if (signatoryEl && signatoryEl.textContent) shrinkToFit(signatoryEl, 150, 16);
 
@@ -162,6 +165,7 @@ const TEMPLATE_PATHS = {
   appointment: "/templates/certificate.svg",
   paper_award: "/templates/certificate-award.svg",
   conference_invitation: "/templates/certificate-invitation.svg",
+  publication_sponsorship: "/templates/certificate-sponsorship.svg",
 };
 
 export async function loadCertificateTemplate(certType = "appointment") {
@@ -188,6 +192,7 @@ export function buildCertificateSvg(templateText, record, qrDataUrl) {
 
   try {
     removeIfEmpty(svgEl, "field-issn", record.issn);
+    removeIfEmpty(svgEl, "field-affiliation", record.affiliation);
     selectSeal(svgEl, record.seal, record.secretariat_signed);
     toggleInstituteLogo(svgEl, record.journal);
     fitAllText(svgEl);

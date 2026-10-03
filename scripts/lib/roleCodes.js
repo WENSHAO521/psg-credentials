@@ -21,6 +21,8 @@ const ROLE_CODES = {
   'Invited Speaker': 'IVS',
   'Keynote Speaker': 'KNS',
   'Session Chair': 'SCH',
+  // Research Institute publication (APC) sponsorship (cert_type publication_sponsorship)
+  'Publication Sponsorship': 'SPN',
   // Panorama Research Institute
   'Research Fellow': 'RF',
   'Associate Research Fellow': 'ARF',

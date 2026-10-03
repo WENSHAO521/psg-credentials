@@ -36,6 +36,7 @@ const NAV_ITEMS = [
   { to: "/institute", label: "Institute" },
   { to: "/awards", label: "Awards" },
   { to: "/events", label: "Events" },
+  { to: "/sponsorship", label: "Sponsorship" },
   { to: "/journals", label: "Journals" },
   { to: "/verify", label: "Verify" },
   { to: "/about", label: "About" },

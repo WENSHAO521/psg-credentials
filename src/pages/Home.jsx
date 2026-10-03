@@ -4,6 +4,7 @@ import {
   IconBuildingBank,
   IconAward,
   IconCalendarEvent,
+  IconReceipt,
   IconBooks,
   IconShieldCheck,
   IconInfoCircle,
@@ -87,6 +88,12 @@ const DESTINATIONS = [
     icon: IconCalendarEvent,
   },
   {
+    to: "/sponsorship",
+    label: "Sponsorship",
+    description: "Research Institute publication (APC) sponsorships.",
+    icon: IconReceipt,
+  },
+  {
     to: "/journals",
     label: "Journals",
     description: "Every title published under Panorama Scholarly Group.",
@@ -98,7 +105,7 @@ const DESTINATIONS = [
     label: "About this registry",
     description: "What a PSG credential is, and how to report a concern.",
     icon: IconInfoCircle,
-    span: "sm:col-span-2 lg:col-span-3",
+    span: "lg:col-span-2",
     wide: true,
   },
 ];
@@ -200,8 +207,8 @@ export default function Home() {
               Verify any PSG credential.
             </h1>
             <p className="font-sans text-base text-steel max-w-md mb-8">
-              Editorial appointments, paper awards, and conference invitations all
-              check out here, independent of who's presenting them.
+              Editorial appointments, paper awards, conference invitations, and
+              publication sponsorships all check out here, independent of who's presenting them.
             </p>
             <CertificateSearch
               fullHeight={false}

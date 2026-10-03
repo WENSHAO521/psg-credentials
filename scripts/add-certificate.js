@@ -12,7 +12,10 @@ const { ROLE_CODES } = require('./lib/roleCodes');
 
 const CSV_PATH = path.join(__dirname, '..', 'source', 'certificates.csv');
 const JOURNALS_CSV_PATH = path.join(__dirname, '..', 'source', 'journals.csv');
-const CERT_TYPES = ['appointment', 'paper_award', 'conference_invitation'];
+const CERT_TYPES = ['appointment', 'paper_award', 'conference_invitation', 'publication_sponsorship'];
+// Publication (APC) sponsorships are always granted by the Research Institute.
+const SPONSOR = 'Panorama Research Institute';
+const SPONSORSHIP_ROLE = 'Publication Sponsorship';
 // One-time awards/invitations aren't a "term" that expires -- once granted,
 // they stand. Rather than inventing a separate no-expiry status, they just
 // get a valid_until far enough out that certificateStatus() never flips
@@ -91,22 +94,25 @@ async function main() {
       : 'Journal (must match source/journals.csv exactly)';
     let journal;
     while (true) {
-      journal = await ask(rl, journalPrompt);
+      journal = certType === 'publication_sponsorship'
+        ? await ask(rl, 'Sponsor (must match source/journals.csv exactly)', { defaultValue: SPONSOR })
+        : await ask(rl, journalPrompt);
       if (journalNames.includes(journal)) break;
       console.log(`  "${journal}" is not in source/journals.csv. Known journals:`);
       journalNames.forEach((j) => console.log(`    - ${j}`));
       console.log('  Add it to journals.csv first, or pick one of the names above.\n');
     }
 
-    let role;
-    while (true) {
+    let role = certType === 'publication_sponsorship' ? SPONSORSHIP_ROLE : '';
+    while (!role) {
       role = await ask(rl, `Role (${Object.keys(ROLE_CODES).join(' / ')})`);
       if (ROLE_CODES[role]) break;
       console.log(`  "${role}" is not a known role. Valid roles:\n    - ${Object.keys(ROLE_CODES).join('\n    - ')}\n`);
+      role = '';
     }
 
     const journalType = (journals.find((r) => r.journal.trim() === journal) || {}).type;
-    if (journalType === 'institute') {
+    if (journalType === 'institute' && certType === 'appointment') {
       console.log(
         '\n  Note: Panorama Research Institute appointment terms are role-specific, not a\n' +
         '  blanket 3 years like journal certificates -- per the Institute charter\n' +
@@ -117,9 +123,10 @@ async function main() {
       );
     }
 
-    const issueDate = await ask(rl, certType === 'appointment' ? 'Issue date (YYYY-MM-DD)' : 'Date awarded / event date (YYYY-MM-DD)', { defaultValue: today() });
+    const issueDate = await ask(rl, certType === 'appointment' ? 'Issue date (YYYY-MM-DD)' : certType === 'publication_sponsorship' ? 'Date sponsorship granted (YYYY-MM-DD)' : 'Date awarded / event date (YYYY-MM-DD)', { defaultValue: today() });
 
     let detail = '';
+    let affiliation = '';
     let validFrom, validUntil;
     if (certType === 'appointment') {
       const termYearsRaw = await ask(rl, 'Term length in years', {
@@ -132,9 +139,14 @@ async function main() {
       validFrom = await ask(rl, 'Valid from (YYYY-MM-DD)', { defaultValue: issueDate });
       validUntil = await ask(rl, 'Valid until (YYYY-MM-DD)', { defaultValue: addYears(validFrom, termYears) });
     } else {
-      detail = await ask(rl, certType === 'paper_award'
-        ? 'Paper title'
-        : 'Event date & location (e.g. "Nov 12-14, 2026 · Shanghai, China")');
+      if (certType === 'publication_sponsorship') {
+        detail = await ask(rl, 'Article title (exact, as submitted)');
+        affiliation = await ask(rl, 'Author affiliation (e.g. "Department of X, Y University, Country"; blank to omit)', { required: false });
+      } else {
+        detail = await ask(rl, certType === 'paper_award'
+          ? 'Paper title'
+          : 'Event date & location (e.g. "Nov 12-14, 2026 · Shanghai, China")');
+      }
       // One-time awards/invitations don't expire on a term -- valid_from/
       // valid_until still exist (required columns) but are pinned far out
       // so certificateStatus() never flips them to "expired".
@@ -153,6 +165,7 @@ async function main() {
       console.log(`  Term         : ${validFrom} to ${validUntil}`);
     } else {
       console.log(`  Detail       : ${detail}`);
+      if (affiliation) console.log(`  Affiliation  : ${affiliation}`);
     }
     const confirm = await ask(rl, '\nAdd this certificate? (y/n)', { defaultValue: 'y' });
     if (confirm.toLowerCase() !== 'y') {
@@ -173,6 +186,7 @@ async function main() {
       valid_until: validUntil,
       cert_type: certType,
       detail,
+      affiliation,
       token: '',
       status: 'active',
       revoked_at: '',

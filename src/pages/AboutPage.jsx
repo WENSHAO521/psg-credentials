@@ -20,7 +20,8 @@ export default function AboutPage() {
             publisher operating a portfolio of peer-reviewed journals. This
             registry is the official system of record for credentials it
             issues -- editorial board appointments, Institute appointments,
-            paper awards, and conference invitations -- across those
+            paper awards, conference invitations, and Institute publication
+            sponsorships -- across those
             journals. Every certificate carries a unique number, a QR code,
             and an invisible watermark embedded in the exported file itself,
             so its authenticity can be verified independently of who is

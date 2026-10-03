@@ -23,6 +23,11 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://credentials.panorama-sg.com/sponsorship</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://credentials.panorama-sg.com/journals</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
