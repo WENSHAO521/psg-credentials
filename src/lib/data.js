@@ -25,8 +25,10 @@ export async function loadJournals() {
 // paper_award records are matched on `detail` (the paper title) instead of
 // `name`: author names collide a lot more than paper titles do, so name
 // search would surface the wrong person's award as often as the right one.
-// publication_sponsorship records match on either: the holder looks it up by
-// name, a journal editor checking a submission by the article title.
+// publication_sponsorship records match on either: an author looks it up by
+// name, a journal editor checking a submission by the article title. A shared
+// article sponsorship lists coauthors in `name`, separated by semicolons;
+// each complete author name still matches the same certificate.
 // Every other cert_type still matches on name as usual.
 //
 // `scope`, if given, further restricts which records are eligible (e.g. only
@@ -37,12 +39,14 @@ export async function searchByName(query, { scope } = {}) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
   const nameMatches = (r) => r.name.trim().toLowerCase() === q;
+  const sponsorshipAuthorMatches = (r) =>
+    r.name.split(";").some((name) => name.trim().toLowerCase() === q);
   const titleMatches = (r) => r.detail && r.detail.trim().toLowerCase() === q;
   const matches = records.filter((r) =>
     r.cert_type === "paper_award"
       ? titleMatches(r)
       : r.cert_type === "publication_sponsorship"
-        ? nameMatches(r) || titleMatches(r)
+        ? sponsorshipAuthorMatches(r) || nameMatches(r) || titleMatches(r)
         : nameMatches(r)
   );
   return scope ? matches.filter(scope) : matches;
