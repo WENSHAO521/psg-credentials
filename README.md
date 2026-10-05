@@ -53,11 +53,17 @@ Run locally: `DRY_RUN=1 npm run sync-roster`.
 ## Publication sponsorships
 
 The Research Institute sponsors (waives) the article processing charge of
-selected articles. Each sponsored author gets a `publication_sponsorship`
-certificate: `npm run add-certificate`, type `publication_sponsorship`, then
+selected articles. Each sponsored article gets one `publication_sponsorship`
+certificate shared by its authors: `npm run add-certificate`, type `publication_sponsorship`, then
 the article title (`detail`) and, optionally, the author's affiliation
 (`affiliation`). The role is always `Publication Sponsorship`, the sponsor
 always the Panorama Research Institute (signed by its Director, bronze seal).
+
+For coauthored articles, use a combined display name (e.g. `Yanlin Feng and
+Sebastian Lenz`) and separate the plain search names with semicolons
+(`Yanlin Feng; Sebastian Lenz`). Each author's full name and the exact article
+title find the same certificate and Sponsorship No.; do not duplicate its ID
+across separate rows.
 
 The certificate number (`PSG-PRI-SPN-<year>-<seq>`) doubles as the
 Sponsorship No. authors cite when submitting, e.g. under Funding /
