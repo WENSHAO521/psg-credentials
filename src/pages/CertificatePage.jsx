@@ -42,7 +42,14 @@ export default function CertificatePage() {
 
     async function run() {
       setPhase("loading");
-      const found = await findById(id);
+      let found;
+      try {
+        found = await findById(id);
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) setPhase("error");
+        return;
+      }
       if (cancelled) return;
       if (!found) {
         setPhase("not_found");

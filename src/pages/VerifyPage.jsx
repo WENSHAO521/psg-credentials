@@ -18,7 +18,15 @@ export default function VerifyPage() {
 
   async function runVerification(id, token) {
     setPhase("loading");
-    const record = await findById(id.trim());
+    let record;
+    try {
+      record = await findById(id.trim());
+    } catch (err) {
+      console.error(err);
+      setOutcome({ variant: "error", record: null });
+      setPhase("done");
+      return;
+    }
 
     if (!record) {
       setOutcome({ variant: "not_found", record: null });
@@ -240,6 +248,13 @@ export default function VerifyPage() {
               <p className="text-sm text-steel max-w-sm">
                 No certificate matches this number. Double-check the number
                 printed on the document, or scan its QR code directly.
+              </p>
+            )}
+
+            {outcome.variant === "error" && (
+              <p className="text-sm text-steel max-w-sm">
+                The registry could not be loaded. Please check your connection
+                and try again.
               </p>
             )}
 
