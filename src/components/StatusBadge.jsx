@@ -30,6 +30,12 @@ const VARIANTS = {
     ring: "border-red",
     icon_color: "text-red",
   },
+  error: {
+    Icon: IconAlertCircle,
+    label: "Unavailable",
+    ring: "border-steel",
+    icon_color: "text-steel",
+  },
   invalid: {
     Icon: IconAlertCircle,
     label: "Invalid link",

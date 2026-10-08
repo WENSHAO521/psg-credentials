@@ -26,10 +26,24 @@ export default function CertificateSearch({
       return;
     }
     setPhase("loading");
-    searchByName(q, { scope }).then((r) => {
-      setResults(r);
-      setPhase("done");
-    });
+    // `cancelled` drops the result of a superseded search, so a slow earlier
+    // query can't overwrite the results of a newer one.
+    let cancelled = false;
+    searchByName(q, { scope })
+      .then((r) => {
+        if (cancelled) return;
+        setResults(r);
+        setPhase("done");
+      })
+      .catch((err) => {
+        console.error(err);
+        if (cancelled) return;
+        setResults([]);
+        setPhase("error");
+      });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
@@ -99,6 +113,12 @@ export default function CertificateSearch({
         {phase === "loading" && (
           <p className="mt-8 text-center font-mono text-xs tracking-[0.2em] uppercase text-steel relative z-10">
             Searching&hellip;
+          </p>
+        )}
+
+        {phase === "error" && (
+          <p className="mt-8 text-center text-sm text-red relative z-10">
+            The registry could not be loaded. Please try again shortly.
           </p>
         )}
 
