@@ -63,7 +63,10 @@ For coauthored articles, use a combined display name (e.g. `Yanlin Feng and
 Sebastian Lenz`) and separate the plain search names with semicolons
 (`Yanlin Feng; Sebastian Lenz`). Each author's full name and the exact article
 title find the same certificate and Sponsorship No.; do not duplicate its ID
-across separate rows.
+across separate rows. With more than three authors, the display name lists the
+first three followed by `et al.` (e.g. `Qilong Wang, Xixi Fan, Xin Qi et al.`)
+and `affiliation` lists only those authors' institutions; `name` still holds
+every author so each one can be found by search.
 
 The certificate number (`PSG-PRI-SPN-<year>-<seq>`) doubles as the
 Sponsorship No. authors cite when submitting, e.g. under Funding /
