@@ -66,7 +66,8 @@ title find the same certificate and Sponsorship No.; do not duplicate its ID
 across separate rows. With more than three authors, the display name lists the
 first three followed by `et al.` (e.g. `Qilong Wang, Xixi Fan, Xin Qi et al.`)
 and `affiliation` lists only those authors' institutions; `name` still holds
-every author so each one can be found by search.
+every author so each one can be found by search. The certificate itself shows at
+most three institutions (`A; B; C et al.`); `affiliation` can hold more.
 
 The certificate number (`PSG-PRI-SPN-<year>-<seq>`) doubles as the
 Sponsorship No. authors cite when submitting, e.g. under Funding /
