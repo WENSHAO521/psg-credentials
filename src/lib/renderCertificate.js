@@ -8,6 +8,16 @@ function escapeXml(str) {
     .replace(/>/g, "&gt;");
 }
 
+const MAX_AFFILIATIONS = 3;
+
+// Institutions are separated by "; ". Beyond three, the certificate shows the
+// first three and "et al."; the full list stays in the registry.
+function capAffiliations(affiliation) {
+  const parts = (affiliation || "").split(/;\s*/).filter(Boolean);
+  if (parts.length <= MAX_AFFILIATIONS) return affiliation || "";
+  return `${parts.slice(0, MAX_AFFILIATIONS).join("; ")} et al.`;
+}
+
 function fillPlaceholders(templateText, record) {
   const map = {
     "{{DISPLAY_NAME}}": record.display_name,
@@ -17,7 +27,7 @@ function fillPlaceholders(templateText, record) {
     "{{VALID_UNTIL}}": record.valid_until,
     "{{ISSUE_DATE}}": record.issue_date || "",
     "{{DETAIL}}": record.detail || "",
-    "{{AFFILIATION}}": record.affiliation || "",
+    "{{AFFILIATION}}": capAffiliations(record.affiliation),
     "{{CERTIFICATE_ID}}": record.certificate_id,
     "{{SIGNATORY_NAME}}": record.signatory_name || "",
     "{{SIGNATORY_TITLE}}": record.signatory_title || "",
