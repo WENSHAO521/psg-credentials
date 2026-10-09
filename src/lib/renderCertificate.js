@@ -51,32 +51,6 @@ function shrinkToFit(textEl, maxWidth, minSize) {
   return textEl.getComputedTextLength() > maxWidth;
 }
 
-function wrapIntoTwoLines(textEl, text, centerY, lineHeight) {
-  const mid = Math.floor(text.length / 2);
-  let splitAt = text.lastIndexOf(" ", mid);
-  if (splitAt === -1) splitAt = text.indexOf(" ", mid);
-  if (splitAt === -1) return; // single unbreakable word, leave as-is
-
-  const x = textEl.getAttribute("x");
-  const line1 = text.slice(0, splitAt);
-  const line2 = text.slice(splitAt + 1);
-
-  while (textEl.firstChild) textEl.removeChild(textEl.firstChild);
-
-  const tspan1 = document.createElementNS(SVG_NS, "tspan");
-  tspan1.setAttribute("x", x);
-  tspan1.setAttribute("y", (centerY - lineHeight / 2).toFixed(1));
-  tspan1.textContent = line1;
-
-  const tspan2 = document.createElementNS(SVG_NS, "tspan");
-  tspan2.setAttribute("x", x);
-  tspan2.setAttribute("y", (centerY + lineHeight / 2).toFixed(1));
-  tspan2.textContent = line2;
-
-  textEl.appendChild(tspan1);
-  textEl.appendChild(tspan2);
-}
-
 // Shrinks a centered text line to fit, falling back to a two-line wrap if
 // it's still too long even at a reasonable minimum size. Reads its target
 // centerY straight off the element's own y attribute (rather than a
@@ -86,17 +60,26 @@ function wrapIntoTwoLines(textEl, text, centerY, lineHeight) {
 // share this treatment.
 function fitWithWrapFallback(el) {
   if (!el || !el.textContent) return;
-  const text = el.textContent;
   const originalSize = parseFloat(el.getAttribute("font-size"));
-  const minSize = Math.max(originalSize * 0.55, 10);
-  const stillOverflows = shrinkToFit(el, FRAME_INNER_MAX_WIDTH, minSize);
-  if (stillOverflows) {
-    const centerY = parseFloat(el.getAttribute("y"));
-    el.setAttribute("font-size", (originalSize * 0.8).toFixed(1));
-    wrapIntoTwoLines(el, text, centerY, originalSize * 0.95);
+  const centerY = parseFloat(el.getAttribute("y"));
+  const r = chooseWrap(el, el.textContent.split(/\s+/).filter(Boolean), {
+    baseSize: originalSize,
+    minSingleSize: Math.max(originalSize * 0.55, 10),
+    maxWidth: FRAME_INNER_MAX_WIDTH,
+    ellipsis: " …",
+    tiers: [
+      { size: originalSize * 0.8, lineHeight: originalSize, maxLines: 2 },
+      { size: originalSize * 0.65, lineHeight: originalSize * 0.8, maxLines: 3 },
+    ],
+  });
+  if (r.lines.length === 1) {
+    el.textContent = r.lines[0];
+    el.setAttribute("font-size", String(r.size));
+    return;
   }
+  // Lines are balanced around the original single-line position.
+  setLines(el, r.lines, r.size, r.lineHeight, centerY - ((r.lines.length - 1) * r.lineHeight) / 2);
 }
-
 
 // ---- Multi-line flow layout (templates with a #body-flow group) -----------
 // Used by the sponsorship certificate, whose name / affiliation / article
@@ -353,7 +336,9 @@ const TEMPLATE_PATHS = {
 
 export async function loadCertificateTemplate(certType = "appointment") {
   const path = TEMPLATE_PATHS[certType] || TEMPLATE_PATHS.appointment;
-  const res = await fetch(path);
+  // Revalidate every time: the host caches static files for hours, and a stale
+  // template paired with newer code mis-lays-out the certificate.
+  const res = await fetch(path, { cache: "no-cache" });
   if (!res.ok) throw new Error("Failed to load certificate template");
   return res.text();
 }
