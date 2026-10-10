@@ -72,8 +72,11 @@
   <circle cx="200" cy="200" r="132" fill="none" stroke="#6B6D72" stroke-width="1"/>
 
   <!-- center monogram, reduced from the primary logo mark -->
-  <g transform="translate(200,200) scale(1.7) translate(-47,-50)">
-    <path d="M14 10 H56 A24 24 0 0 1 56 58 H34 V90 H14 Z M34 27 H54 A7 7 0 0 1 54 41 H34 Z" fill="#000000" fill-rule="evenodd"/>
-    <rect x="52" y="70" width="20" height="20" fill="#E30613"/>
+  <g transform="translate(200,200) scale(0.85) translate(-95,-100)">
+    <rect x="0" y="0" width="30" height="200" fill="#000000"/>
+    <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z" fill="#E30613"/>
+    <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z" fill="#000000"/>
+    <path d="M150 200 H50 V170 H150 V50 H180 V200 Z" fill="#000000"/>
+    <rect x="160" y="10" width="30" height="30" fill="#E30613"/>
   </g>
 </svg>
