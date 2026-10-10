@@ -13,7 +13,7 @@ import {
 
 function Monogram({ className }) {
   return (
-    <svg viewBox="10 6 66 88" className={className} aria-hidden="true">
+    <svg viewBox="10 6 72 88" className={className} aria-hidden="true">
       <path
         d="M14 10 H56 A24 24 0 0 1 56 58 H34 V90 H14 Z M34 27 H54 A7 7 0 0 1 54 41 H34 Z"
         fill="currentColor"
