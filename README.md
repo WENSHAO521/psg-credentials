@@ -101,4 +101,4 @@ npm run dev
 
 - [x] Data pipeline: CSV -> assign-ids -> validate -> build JSON
 - [x] CI validation on PR
-- [ ] Frontend (React/Vite): home search, certificate preview, verify page — pending brand assets (logo, certificate SVG templates, colors)
+- [ ] Frontend (React/Vite): home search, certificate preview, verify page — brand assets (logo, certificate SVG templates, colors) are in `public/`, see `public/BRAND.md`
