@@ -70,12 +70,9 @@
   </g>
 
   <!-- header: monogram + wordmark, left -->
-  <g transform="translate(70,54) scale(0.2316)">
-    <rect x="0" y="0" width="30" height="200" fill="#000000"/>
-    <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z" fill="#E30613"/>
-    <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z" fill="#000000"/>
-    <path d="M150 200 H50 V170 H150 V50 H180 V200 Z" fill="#000000"/>
-    <rect x="160" y="10" width="30" height="30" fill="#E30613"/>
+  <g transform="translate(70,54) scale(0.4632) translate(-14,-10)">
+    <path d="M14 10 H56 A24 24 0 0 1 56 58 H34 V90 H14 Z M34 27 H54 A7 7 0 0 1 54 41 H34 Z" fill="#000000" fill-rule="evenodd"/>
+    <rect x="52" y="70" width="20" height="20" fill="#E30613"/>
   </g>
   <text x="126" y="66" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="12" letter-spacing="1.5" fill="#000000">PANORAMA SCHOLARLY GROUP</text>
   <text x="126" y="80" font-family="Arial, Helvetica, sans-serif" font-weight="400" font-size="9" letter-spacing="2" fill="#6B6D72">CREDENTIAL SERVICES</text>
@@ -154,12 +151,9 @@
       <textPath href="#secRingBottom" startOffset="50%" text-anchor="middle">SECRETARIAT &#183; OFFICIAL SEAL</textPath>
     </text>
     <circle cx="200" cy="200" r="132" fill="none" stroke="#AEB3BA" stroke-width="1.5"/>
-    <g transform="translate(200,200) scale(0.85) translate(-95,-100)" fill="#3A3D42">
-      <rect x="0" y="0" width="30" height="200"/>
-      <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z"/>
-      <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z"/>
-      <path d="M150 200 H50 V170 H150 V50 H180 V200 Z"/>
-      <rect x="160" y="10" width="30" height="30"/>
+    <g transform="translate(200,200) scale(1.7) translate(-47,-50)" fill="#3A3D42">
+      <path d="M14 10 H56 A24 24 0 0 1 56 58 H34 V90 H14 Z M34 27 H54 A7 7 0 0 1 54 41 H34 Z" fill-rule="evenodd"/>
+      <rect x="52" y="70" width="20" height="20"/>
     </g>
   </g>
 
@@ -188,12 +182,9 @@
     <rect x="47" y="195" width="10" height="10" fill="#4A3A0F" transform="rotate(45 52 200)"/>
     <rect x="343" y="195" width="10" height="10" fill="#4A3A0F" transform="rotate(45 348 200)"/>
     <circle cx="200" cy="200" r="132" fill="none" stroke="#7A5D16" stroke-width="1"/>
-    <g transform="translate(200,200) scale(0.85) translate(-95,-100)" fill="#3D2E0A">
-      <rect x="0" y="0" width="30" height="200"/>
-      <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z"/>
-      <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z"/>
-      <path d="M150 200 H50 V170 H150 V50 H180 V200 Z"/>
-      <rect x="160" y="10" width="30" height="30"/>
+    <g transform="translate(200,200) scale(1.7) translate(-47,-50)" fill="#3D2E0A">
+      <path d="M14 10 H56 A24 24 0 0 1 56 58 H34 V90 H14 Z M34 27 H54 A7 7 0 0 1 54 41 H34 Z" fill-rule="evenodd"/>
+      <rect x="52" y="70" width="20" height="20"/>
     </g>
   </g>
   <g id="seal-secretariat" transform="translate(685,445) scale(0.275)" display="none">
@@ -209,12 +200,9 @@
     <rect x="47" y="195" width="10" height="10" fill="#6B7078" transform="rotate(45 52 200)"/>
     <rect x="343" y="195" width="10" height="10" fill="#6B7078" transform="rotate(45 348 200)"/>
     <circle cx="200" cy="200" r="132" fill="none" stroke="#AEB3BA" stroke-width="1"/>
-    <g transform="translate(200,200) scale(0.85) translate(-95,-100)" fill="#3A3D42">
-      <rect x="0" y="0" width="30" height="200"/>
-      <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z"/>
-      <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z"/>
-      <path d="M150 200 H50 V170 H150 V50 H180 V200 Z"/>
-      <rect x="160" y="10" width="30" height="30"/>
+    <g transform="translate(200,200) scale(1.7) translate(-47,-50)" fill="#3A3D42">
+      <path d="M14 10 H56 A24 24 0 0 1 56 58 H34 V90 H14 Z M34 27 H54 A7 7 0 0 1 54 41 H34 Z" fill-rule="evenodd"/>
+      <rect x="52" y="70" width="20" height="20"/>
     </g>
   </g>
   <g id="seal-institute" transform="translate(685,445) scale(0.275)" display="none">
@@ -230,12 +218,9 @@
     <rect x="47" y="195" width="10" height="10" fill="#3D2814" transform="rotate(45 52 200)"/>
     <rect x="343" y="195" width="10" height="10" fill="#3D2814" transform="rotate(45 348 200)"/>
     <circle cx="200" cy="200" r="132" fill="none" stroke="#5C3A1E" stroke-width="1"/>
-    <g transform="translate(200,200) scale(0.85) translate(-95,-100)" fill="#3D2814">
-      <rect x="0" y="0" width="30" height="200"/>
-      <path d="M30 0 H120 C150 0, 150 70, 120 70 H30 Z"/>
-      <path d="M0 100 H120 V130 H30 V150 H120 V200 H0 V170 H90 V150 H0 Z"/>
-      <path d="M150 200 H50 V170 H150 V50 H180 V200 Z"/>
-      <rect x="160" y="10" width="30" height="30"/>
+    <g transform="translate(200,200) scale(1.7) translate(-47,-50)" fill="#3D2814">
+      <path d="M14 10 H56 A24 24 0 0 1 56 58 H34 V90 H14 Z M34 27 H54 A7 7 0 0 1 54 41 H34 Z" fill-rule="evenodd"/>
+      <rect x="52" y="70" width="20" height="20"/>
     </g>
   </g>
 </svg>

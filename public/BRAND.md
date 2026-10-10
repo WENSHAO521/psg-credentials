@@ -17,10 +17,16 @@ Single family throughout: Arial/Helvetica (matches the supplied logo). Hierarchy
 
 ## Assets
 
-- [`logo/psg-logo.svg`](logo/psg-logo.svg) — primary lockup (mark + wordmark)
+- [`logo/psg-logo.svg`](logo/psg-logo.svg) — primary lockup (mark + wordmark); [`psg-logo-white.svg`](logo/psg-logo-white.svg) for dark grounds
+- [`logo/psg-mark.svg`](logo/psg-mark.svg) / [`psg-mark-white.svg`](logo/psg-mark-white.svg) — mark alone (P + red period)
+- `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`, `icon-512.png` — mark in white on an ink tile
 - [`logo/psg-institute-logo.svg`](logo/psg-institute-logo.svg) — Research Institute sub-brand mark (stacked), used on Institute certificates only
 - [`seal/psg-official-seal.svg`](seal/psg-official-seal.svg) — official seal, gauge-bezel ring, bilingual ring text (`ZERTIFIZIERT · CERTIFIED`)
 - [`templates/certificate.svg`](templates/certificate.svg) — V1 certificate master template
+
+## Mark (V2)
+
+A geometric P on a 10-unit grid plus a 2x2 red square set at its foot, read as a period. The red square is the only red in the mark. Clear space: at least one red-square edge on every side. Minimum size: mark 16px, lockup 120px wide; at 24px or below keep the counter solid-readable (do not add detail). On dark grounds the letter turns white, the red stays `#E30613`. In single-colour use (seals, embossing) the square takes the letter colour.
 
 ## Why this direction
 
