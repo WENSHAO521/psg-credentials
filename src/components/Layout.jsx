@@ -9,6 +9,8 @@ import {
   IconAward,
   IconCalendarEvent,
   IconReceipt,
+  IconSun,
+  IconMoon,
 } from "@tabler/icons-react";
 
 function Monogram({ className }) {
@@ -21,6 +23,36 @@ function Monogram({ className }) {
       />
       <rect x="52" y="70" width="20" height="20" fill="#E30613" />
     </svg>
+  );
+}
+
+function ThemeToggle({ className = "" }) {
+  const [theme, setTheme] = useState(() =>
+    document.documentElement.dataset.theme === "dark" ? "dark" : "light"
+  );
+
+  function toggle() {
+    const next = theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem("psg-theme", next);
+    } catch (e) {
+      /* storage blocked: the choice just won't persist */
+    }
+    setTheme(next);
+  }
+
+  const Icon = theme === "dark" ? IconMoon : IconSun;
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={theme === "dark" ? "Switch to light mode (sun)" : "Switch to dark mode (moon)"}
+      title={theme === "dark" ? "Dark mode" : "Light mode"}
+      className={`p-2 text-ink hover:text-red transition-colors focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2 ${className}`}
+    >
+      <Icon size={20} stroke={1.75} />
+    </button>
   );
 }
 
@@ -208,18 +240,22 @@ export default function Layout({ children }) {
               </NavLink>
             ))}
             <VerifyButton className="ml-2" />
+            <ThemeToggle />
           </nav>
 
+          <div className="lg:hidden flex items-center ml-auto">
+          <ThemeToggle />
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
-            className="lg:hidden p-2 -mr-2 text-ink focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
+            className="p-2 -mr-2 text-ink focus-visible:outline-2 focus-visible:outline-red focus-visible:outline-offset-2"
           >
             {menuOpen ? <IconX size={22} stroke={1.75} /> : <IconMenu2 size={22} stroke={1.75} />}
           </button>
+          </div>
         </div>
 
         {menuOpen && (
