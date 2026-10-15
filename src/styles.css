@@ -22,20 +22,21 @@
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
 }
 
-/* Dark mode: redefine the same custom properties Tailwind's utilities already
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Dark mode (sun/moon toggle in the header, light by default): redefine the same custom properties Tailwind's utilities already
    reference (bg-ink, text-steel, etc.), so no component needs a dark: variant.
    The certificate SVG itself is exempt on purpose — it's a printed/exported
    document and stays white paper regardless of site theme. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-ink: #f2f1ef;
-    --color-paper: #141416;
-    --color-paper-pure: #1c1d1f;
-    --color-surface: #202124;
-    --color-surface-line: #313335;
-    --color-steel: #9a9ca0;
-    --color-steel-dim: #6b6d72;
-  }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-ink: #f2f1ef;
+  --color-paper: #141416;
+  --color-paper-pure: #1c1d1f;
+  --color-surface: #202124;
+  --color-surface-line: #313335;
+  --color-steel: #9a9ca0;
+  --color-steel-dim: #6b6d72;
 }
 
 body {
