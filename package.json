@@ -16,12 +16,12 @@
     "dev": "npm run build:data && vite"
   },
   "dependencies": {
-    "@tabler/icons-react": "^3.19.0",
-    "papaparse": "^5.4.1",
+    "@tabler/icons-react": "^3.49.0",
+    "papaparse": "^5.7.0",
     "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
